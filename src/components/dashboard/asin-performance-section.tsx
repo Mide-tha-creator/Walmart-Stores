@@ -1,7 +1,7 @@
 "use client";
 
-import Image from "next/image";
 import { useMemo, useState } from "react";
+import { ProductImage } from "@/components/ui/product-image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -46,11 +46,10 @@ function AsinCard({
     return (
       <article className="flex gap-3 rounded-sm border border-[#d5d9d9] bg-white p-3">
         <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-sm bg-[#f3f5f6] sm:h-[72px] sm:w-[72px]">
-          <Image
+          <ProductImage
+            asin={product.asin}
             src={product.imageUrl}
             alt={product.title}
-            fill
-            className="object-contain p-1"
             sizes="72px"
           />
         </div>
@@ -75,11 +74,10 @@ function AsinCard({
   return (
     <article className="flex h-full flex-col rounded-sm border border-[#d5d9d9] bg-white p-2.5">
       <div className="relative mb-2 h-[88px] w-full overflow-hidden rounded-sm bg-[#f3f5f6]">
-        <Image
+        <ProductImage
+          asin={product.asin}
           src={product.imageUrl}
           alt={product.title}
-          fill
-          className="object-contain p-1"
           sizes="140px"
         />
       </div>

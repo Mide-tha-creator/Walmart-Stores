@@ -1,4 +1,5 @@
 import { buildAmazonBundle } from "@/data/stores/build-amazon-bundle";
+import { getProductImageUrl } from "@/lib/catalog/product-image-url";
 import type { AmazonStoreDataConfig } from "@/types/store-data";
 
 export const amazonApexDataConfig: AmazonStoreDataConfig = {
@@ -27,8 +28,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B07VZ8K9M2",
       title: "Sanabul Easter Egg Boxing Gloves for Kids",
-      imageUrl:
-        "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B07VZ8K9M2"),
       category: "growth_opportunities",
       metricLabel:
         "This ASIN has a sales gap of $12,450 when compared to similar ASINs",
@@ -37,8 +37,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B08N5WRWNW",
       title: "Sanabul Essential Gel Boxing Gloves",
-      imageUrl:
-        "https://images.unsplash.com/photo-1549719386-74dfcbf7dbed?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B08N5WRWNW"),
       category: "growth_opportunities",
       metricLabel:
         "This ASIN has a sales gap of $8,920 when compared to similar ASINs",
@@ -47,8 +46,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B09GXP4KLM",
       title: "Sanabul Battle Forged MMA Gloves",
-      imageUrl:
-        "https://images.unsplash.com/photo-1555597673-b21d5c4819e4?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B09GXP4KLM"),
       category: "growth_opportunities",
       metricLabel:
         "This ASIN has a sales gap of $6,340 when compared to similar ASINs",
@@ -57,8 +55,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B07HJF26M5",
       title: "Sanabul Professional Boxing Gloves 16oz",
-      imageUrl:
-        "https://images.unsplash.com/photo-1598289431512-b97b0917affc?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B07HJF26M5"),
       category: "growth_opportunities",
       metricLabel:
         "This ASIN has a sales gap of $5,180 when compared to similar ASINs",
@@ -67,8 +64,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B08TENT001",
       title: "Sanabul Hand Wraps 180 Inch Elastic",
-      imageUrl:
-        "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B08TENT001"),
       category: "declining_sales",
       metricLabel: "$892.10 decline in ordered product sales",
       deltaAmount: -892.1,
@@ -76,8 +72,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B09PACK202",
       title: "Sanabul Shin Guards for Muay Thai",
-      imageUrl:
-        "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B09PACK202"),
       category: "increasing_sales",
       metricLabel: "$1,240.50 increase in ordered product sales",
       deltaAmount: 1240.5,
@@ -85,8 +80,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B07HYD303",
       title: "Sanabul Focus Mitts Pro Pair",
-      imageUrl:
-        "https://images.unsplash.com/photo-1602143407151-7111542de6e8?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B07HYD303"),
       category: "increasing_traffic",
       metricLabel: "12% increase in page views",
       deltaAmount: 456.3,
@@ -94,8 +88,7 @@ export const amazonApexDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B09ABC5678",
       title: "Sanabul Jump Rope Speed Cable",
-      imageUrl:
-        "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B09ABC5678"),
       category: "declining_traffic",
       metricLabel: "8% decline in page views",
       deltaAmount: -298.15,

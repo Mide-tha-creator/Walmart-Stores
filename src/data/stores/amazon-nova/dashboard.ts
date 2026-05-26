@@ -1,4 +1,5 @@
 import { buildAmazonBundle } from "@/data/stores/build-amazon-bundle";
+import { getProductImageUrl } from "@/lib/catalog/product-image-url";
 import type { AmazonStoreDataConfig } from "@/types/store-data";
 
 export const amazonNovaDataConfig: AmazonStoreDataConfig = {
@@ -27,8 +28,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B0F7JMBW44",
       title: "Premium Kitchen Organizer Drawer Expandable",
-      imageUrl:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d4046?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B0F7JMBW44"),
       category: "below_market_average",
       metricLabel:
         "Last week sales were $47.81 below the market average for similar ASINs",
@@ -37,8 +37,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B08KIT100",
       title: "Bamboo Drawer Organizer Expandable",
-      imageUrl:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d4046?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B08KIT100"),
       category: "below_market_average",
       metricLabel:
         "Last week sales were $32.15 below the market average for similar ASINs",
@@ -47,8 +46,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B09LMP200",
       title: "Smart LED Desk Lamp Dimmable",
-      imageUrl:
-        "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B09LMP200"),
       category: "top_sales_products",
       metricLabel: "$1,124.50 in ordered product sales last week",
       deltaAmount: 1124.5,
@@ -56,8 +54,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B07THR300",
       title: "Memory Foam Bath Mat Set 2-Pack",
-      imageUrl:
-        "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B07THR300"),
       category: "declining_sales",
       metricLabel: "$334.20 decline in ordered product sales",
       deltaAmount: -334.2,
@@ -65,8 +62,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B08ORG400",
       title: "Countertop Spice Rack 3-Tier",
-      imageUrl:
-        "https://images.unsplash.com/photo-1556909114-f6e7ad7d4046?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B08ORG400"),
       category: "increasing_sales",
       metricLabel: "$456.80 increase in ordered product sales",
       deltaAmount: 456.8,
@@ -74,8 +70,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B09TRA500",
       title: "Under-Shelf Basket Wire 2-Pack",
-      imageUrl:
-        "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B09TRA500"),
       category: "declining_traffic",
       metricLabel: "14% decline in page views",
       deltaAmount: -14,
@@ -83,8 +78,7 @@ export const amazonNovaDataConfig: AmazonStoreDataConfig = {
     {
       asin: "B07LMP600",
       title: "Glass Food Storage Containers 12-Piece",
-      imageUrl:
-        "https://images.unsplash.com/photo-1585515320310-259814833e62?w=120&h=120&fit=crop",
+      imageUrl: getProductImageUrl("B07LMP600"),
       category: "increasing_traffic",
       metricLabel: "9% increase in page views",
       deltaAmount: 9,

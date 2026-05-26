@@ -1,7 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { format, parseISO, isAfter, isBefore } from "date-fns";
+import {
+  format,
+  parseISO,
+  isAfter,
+  isBefore,
+  startOfDay,
+} from "date-fns";
 import { Calendar } from "lucide-react";
 import { DayPicker } from "react-day-picker";
 import { Label } from "@/components/ui/label";
@@ -36,6 +42,22 @@ function toIso(date: Date): string {
   return format(date, "yyyy-MM-dd");
 }
 
+const dayPickerClassNames = {
+  root: "p-3 amazon-day-picker",
+  month_caption:
+    "flex justify-center pb-2 text-[13px] font-semibold text-[#111111]",
+  nav: "flex items-center justify-between absolute inset-x-3 top-3",
+  button_previous:
+    "h-7 w-7 rounded text-[#565959] hover:bg-[#f3f5f6]",
+  button_next: "h-7 w-7 rounded text-[#565959] hover:bg-[#f3f5f6]",
+  weekday: "w-9 text-center text-[11px] font-normal text-[#565959]",
+  day: "h-9 w-9 p-0 text-center text-[13px]",
+  day_button: "h-9 w-9 rounded-none font-normal hover:bg-[#e7f4f5]",
+  selected:
+    "[&>button]:bg-[#008296] [&>button]:text-white [&>button]:hover:bg-[#008296]",
+  today: "[&>button]:font-bold",
+} as const;
+
 export function AmazonDateRangePicker({
   preset,
   range,
@@ -45,29 +67,26 @@ export function AmazonDateRangePicker({
   const [activeField, setActiveField] = useState<ActiveField>(null);
   const [openField, setOpenField] = useState<ActiveField>(null);
 
-  const startDate = parseISO(range.start);
-  const endDate = parseISO(range.end);
+  const anchorEnd = parseISO(range.end);
+  const anchorEndDay = startOfDay(anchorEnd);
 
-  const handleSelect = (date: Date | undefined) => {
-    if (!date || !openField) return;
-    const iso = toIso(date);
-    if (openField === "start") {
-      const nextStart = iso;
-      const nextEnd =
-        isAfter(date, endDate) || format(endDate, "yyyy-MM-dd") === iso
-          ? iso
-          : range.end;
-      onRangeChange({ start: nextStart, end: nextEnd });
-      onPresetChange("custom");
-      setOpenField("end");
-      setActiveField("end");
-    } else {
-      const nextEnd = isBefore(date, startDate) ? range.start : iso;
-      onRangeChange({ start: range.start, end: nextEnd });
-      onPresetChange("custom");
-      setOpenField(null);
-      setActiveField(null);
-    }
+  const handleDayClick = (date: Date | undefined) => {
+    if (!date) return;
+    const nextEnd = toIso(date);
+    const clickedDay = startOfDay(date);
+    const currentStart = parseISO(range.start);
+    const nextStart = isAfter(currentStart, clickedDay) ? nextEnd : range.start;
+    onRangeChange({ start: nextStart, end: nextEnd });
+    onPresetChange("custom");
+  };
+
+  const calendarModifiers = {
+    beforeAnchor: (date: Date) =>
+      isBefore(startOfDay(date), anchorEndDay),
+  };
+
+  const calendarModifiersClassNames = {
+    beforeAnchor: "rdp-day-before-anchor",
   };
 
   return (
@@ -97,7 +116,6 @@ export function AmazonDateRangePicker({
             field === "start"
               ? formatDisplayDate(range.start)
               : formatDisplayDate(range.end);
-          const selected = field === "start" ? startDate : endDate;
 
           return (
             <Popover
@@ -131,28 +149,16 @@ export function AmazonDateRangePicker({
               >
                 <DayPicker
                   mode="single"
-                  selected={selected}
-                  onSelect={handleSelect}
-                  defaultMonth={selected}
-                  classNames={{
-                    root: "p-3 amazon-day-picker",
-                    month_caption:
-                      "flex justify-center pb-2 text-[13px] font-semibold text-[#111111]",
-                    nav: "flex items-center justify-between absolute inset-x-3 top-3",
-                    button_previous:
-                      "h-7 w-7 rounded text-[#565959] hover:bg-[#f3f5f6]",
-                    button_next:
-                      "h-7 w-7 rounded text-[#565959] hover:bg-[#f3f5f6]",
-                    weekday:
-                      "w-9 text-center text-[11px] font-normal text-[#565959]",
-                    day: "h-9 w-9 p-0 text-center text-[13px]",
-                    day_button:
-                      "h-9 w-9 rounded-none font-normal hover:bg-[#e7f4f5]",
-                    selected:
-                      "[&>button]:bg-[#008296] [&>button]:text-white [&>button]:hover:bg-[#008296]",
-                    today: "[&>button]:font-bold",
-                  }}
+                  selected={anchorEnd}
+                  onSelect={handleDayClick}
+                  defaultMonth={anchorEnd}
+                  modifiers={calendarModifiers}
+                  modifiersClassNames={calendarModifiersClassNames}
+                  classNames={dayPickerClassNames}
                 />
+                <p className="border-t border-[#d5d9d9] px-3 py-2 text-[11px] text-[#565959]">
+                  Select end date — earlier dates are excluded from view
+                </p>
               </PopoverContent>
             </Popover>
           );
