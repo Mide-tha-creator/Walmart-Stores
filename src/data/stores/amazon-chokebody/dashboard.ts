@@ -34,7 +34,7 @@ export const amazonChokebodyDataConfig: AmazonStoreDataConfig = {
     },
     {
       asin: "B08JBELLY01",
-      title: "Jelly Belly 3 Pound Bag",
+      title: "Jelly Belly Tropical Mix",
       imageUrl: "/products/chokebody-jelly-belly.png",
       category: "declining_sales",
       metricLabel: "$412.20 decline in OPS",
@@ -50,7 +50,7 @@ export const amazonChokebodyDataConfig: AmazonStoreDataConfig = {
     },
     {
       asin: "B07OIL003",
-      title: "Chosen Foods 100% Pure Avocado Oil",
+      title: "Chosen Foods 100% Pure Avocado Oil Spray",
       imageUrl: "/products/chokebody-avocado-oil.png",
       category: "declining_sales",
       metricLabel: "$245.10 decline in OPS",
