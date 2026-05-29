@@ -8,7 +8,9 @@ import { WalmartDateRangeModal } from "@/components/walmart/walmart-date-range-m
 import { WalmartSalesChart } from "@/components/walmart/walmart-sales-chart";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatLongDateRange } from "@/lib/format-date";
+import { useStoreOverridesVersion } from "@/hooks/use-store-overrides-version";
 import { getMetricLabel, getWalmartInsights } from "@/services/store-analytics.service";
+import type { StoreId } from "@/config/stores/types";
 import type { WalmartMetricKey, WalmartSalesInsightsResponse } from "@/types/walmart";
 import type { DateRange, ReportFilters } from "@/types/common";
 
@@ -26,6 +28,7 @@ export function WalmartAccountSalesReport({
   const [appliedRange, setAppliedRange] = useState<DateRange>(defaultDateRange);
   const [dateModalOpen, setDateModalOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const overridesVersion = useStoreOverridesVersion(storeId as StoreId);
 
   const fetchData = useCallback(
     (range: DateRange) => {
@@ -45,7 +48,7 @@ export function WalmartAccountSalesReport({
 
   useEffect(() => {
     fetchData(appliedRange);
-  }, [fetchData, appliedRange]);
+  }, [fetchData, appliedRange, overridesVersion]);
 
   const fullChartData = data?.timeSeries[activeMetric] ?? [];
   const dateLabel = formatLongDateRange(appliedRange.start, appliedRange.end);
@@ -54,7 +57,7 @@ export function WalmartAccountSalesReport({
     activeMetric === "gmv" || activeMetric === "aur" ? "currency" : "compact";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <div className="rounded-[6px] border border-[#e5e7eb] bg-white px-4 py-3">
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-[14px] font-semibold text-[#111827]">
@@ -80,9 +83,9 @@ export function WalmartAccountSalesReport({
           />
         )}
 
-        <div className="mt-3">
+        <div className="mt-4 mb-6">
           {isPending || !data ? (
-            <Skeleton className="h-[320px] w-full" />
+            <Skeleton className="h-[380px] w-full" />
           ) : (
             <WalmartSalesChart
               data={fullChartData}

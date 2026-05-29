@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import type { Metadata } from "next";
 import { StoreProvider } from "@/lib/store/store-context";
 import { StoreShell } from "@/components/engine/store-shell";
+import { StoreFaviconHead } from "@/components/metadata/store-favicon-head";
 import {
   isValidAccountSlug,
   resolveAccountToStoreId,
@@ -45,6 +46,7 @@ export function AccountStoreLayout({
 
   return (
     <StoreProvider storeId={storeId as StoreId}>
+      <StoreFaviconHead marketplace={config.marketplace} />
       <StoreShell>{children}</StoreShell>
     </StoreProvider>
   );

@@ -1,15 +1,26 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { ALL_STORES, getStoreConfig } from "@/config/stores/registry";
 import type { StoreId } from "@/config/stores/types";
+import { AnalyticsRecordsEditor } from "@/components/admin/analytics-records-editor";
 import {
   clearStoreOverrides,
   getAllOverridesForAdmin,
   loadStoreOverrides,
   saveStoreOverrides,
 } from "@/lib/store/resolve-store-data";
+import { interpolateRecentEdits } from "@/lib/store/interpolate-recent-edits";
+import {
+  buildOverridesFromRecentRecords,
+  loadRecentAnalyticsRecordsForStore,
+} from "@/lib/store/recent-analytics-merge";
+import {
+  getRecentAnalyticsWindow,
+  getStoreAnalyticsAnchorEnd,
+} from "@/lib/store/recent-analytics-window";
+import { validateRecentAnalyticsRecords } from "@/lib/store/recent-analytics-save";
 import { notifyStoreOverridesUpdated } from "@/lib/store/use-display-store-config";
 import { getAmazonBundle, getWalmartBundle } from "@/data/stores/registry";
 import { Button } from "@/components/ui/button";
@@ -24,10 +35,8 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "sonner";
-import { WalmartTableRowsEditor } from "@/components/admin/walmart-table-rows-editor";
-import { recalculateWalmartTableRows } from "@/lib/store/walmart-table-rows";
 import type { StoreOverrides } from "@/types/store-data";
-import type { DailySalesRow } from "@/types/walmart";
+import type { RecentAnalyticsRecord } from "@/types/recent-analytics";
 
 const EMPTY_KPI_FORM = {
   totalOrderItems: "",
@@ -61,10 +70,22 @@ export default function AdminPage() {
   const [overridesJson, setOverridesJson] = useState("{}");
   const [displayName, setDisplayName] = useState("");
   const [kpiForm, setKpiForm] = useState(EMPTY_KPI_FORM);
-  const [tableRows, setTableRows] = useState<DailySalesRow[]>([]);
+  const [recentRecords, setRecentRecords] = useState<RecentAnalyticsRecord[]>([]);
+  const [savedRecordsJson, setSavedRecordsJson] = useState("[]");
 
   const config = getStoreConfig(storeId);
   const isAmazon = config.template === "amazon-sales";
+
+  const analyticsWindow = useMemo(() => {
+    const anchorEnd =
+      config.marketplace === "amazon"
+        ? getStoreAnalyticsAnchorEnd("amazon", getAmazonBundle(storeId).config)
+        : getStoreAnalyticsAnchorEnd("walmart", getWalmartBundle(storeId).config);
+    return getRecentAnalyticsWindow(anchorEnd);
+  }, [storeId, config.marketplace]);
+
+  const recentDirty =
+    JSON.stringify(recentRecords) !== savedRecordsJson;
 
   const loadEditorState = useCallback((id: StoreId) => {
     const overrides = getAllOverridesForAdmin(id);
@@ -72,8 +93,11 @@ export default function AdminPage() {
     setOverridesJson(JSON.stringify(overrides, null, 2));
     setDisplayName(overrides.meta?.displayName ?? baseConfig.name);
 
+    const records = loadRecentAnalyticsRecordsForStore(id, overrides);
+    setRecentRecords(records);
+    setSavedRecordsJson(JSON.stringify(records));
+
     if (baseConfig.template === "amazon-sales") {
-      setTableRows([]);
       const snap = overrides.amazon?.snapshot;
       const agg = overrides.amazon?.aggregate;
       const defaults = getAmazonBundle(id).config.defaultAggregate;
@@ -120,11 +144,6 @@ export default function AdminPage() {
         orders: String(sum.orders ?? ""),
         aur: String(sum.aur ?? ""),
       });
-      setTableRows(
-        overrides.walmart?.tableRows
-          ? [...overrides.walmart.tableRows]
-          : [...bundle.tableRows]
-      );
     }
   }, []);
 
@@ -132,21 +151,49 @@ export default function AdminPage() {
     loadEditorState(storeId);
   }, [storeId, loadEditorState]);
 
-  const handleSaveTableRows = () => {
+  const handleSaveRecentAnalytics = () => {
+    const anchorEnd =
+      config.marketplace === "amazon"
+        ? getStoreAnalyticsAnchorEnd("amazon", getAmazonBundle(storeId).config)
+        : getStoreAnalyticsAnchorEnd("walmart", getWalmartBundle(storeId).config);
+    const window = getRecentAnalyticsWindow(anchorEnd);
+    const validated = validateRecentAnalyticsRecords(recentRecords, window);
+    if (!validated.ok) {
+      toast.error(validated.error);
+      return;
+    }
+    const smoothed = interpolateRecentEdits(validated.records);
     const current = loadStoreOverrides(storeId) ?? {};
-    const normalized = recalculateWalmartTableRows(tableRows);
-    const next: StoreOverrides = {
-      ...current,
-      walmart: {
-        ...current.walmart,
-        tableRows: normalized,
-      },
-    };
+    const next = buildOverridesFromRecentRecords(storeId, smoothed, current);
     saveStoreOverrides(storeId, next);
-    setTableRows(normalized);
+    const reloaded = loadRecentAnalyticsRecordsForStore(storeId, next);
+    setRecentRecords(reloaded);
+    setSavedRecordsJson(JSON.stringify(reloaded));
     setOverridesJson(JSON.stringify(next, null, 2));
     notifyStoreOverridesUpdated();
-    toast.success("Daily table overrides saved");
+    toast.success("Recent analytics saved — charts will refresh on open dashboards");
+  };
+
+  const handleCancelRecentAnalytics = () => {
+    setRecentRecords(JSON.parse(savedRecordsJson) as RecentAnalyticsRecord[]);
+  };
+
+  const handleRestoreDefaultRecent = () => {
+    const current = loadStoreOverrides(storeId) ?? {};
+    const next: StoreOverrides = { ...current };
+    delete next.recentAnalytics;
+    if (next.amazon) {
+      delete next.amazon.timeSeries;
+      if (Object.keys(next.amazon).length === 0) delete next.amazon;
+    }
+    if (next.walmart) {
+      delete next.walmart.tableRows;
+      if (Object.keys(next.walmart).length === 0) delete next.walmart;
+    }
+    saveStoreOverrides(storeId, next);
+    loadEditorState(storeId);
+    notifyStoreOverridesUpdated();
+    toast.success("Recent window reset to generated defaults");
   };
 
   const handleSaveKpis = () => {
@@ -295,14 +342,29 @@ export default function AdminPage() {
           </Button>
         </div>
 
-        <Tabs defaultValue="kpi">
+        <Tabs defaultValue="analytics">
           <TabsList>
+            <TabsTrigger value="analytics">
+              Recent analytics{recentDirty ? " *" : ""}
+            </TabsTrigger>
             <TabsTrigger value="kpi">KPIs</TabsTrigger>
-            {!isAmazon ? (
-              <TabsTrigger value="table">Daily table</TabsTrigger>
-            ) : null}
             <TabsTrigger value="json">JSON</TabsTrigger>
           </TabsList>
+          <TabsContent
+            value="analytics"
+            className="rounded-lg border bg-white p-6"
+          >
+            <AnalyticsRecordsEditor
+              records={recentRecords}
+              analyticsWindow={analyticsWindow}
+              dirty={recentDirty}
+              storeId={storeId}
+              onChange={setRecentRecords}
+              onSave={handleSaveRecentAnalytics}
+              onCancel={handleCancelRecentAnalytics}
+              onRestoreDefaults={handleRestoreDefaultRecent}
+            />
+          </TabsContent>
           <TabsContent value="kpi" className="space-y-6 rounded-lg border bg-white p-6">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2 sm:col-span-2">
@@ -431,9 +493,8 @@ export default function AdminPage() {
                     Matches the four KPI cards on Account Sales Report. Values apply
                     when the dashboard uses this store&apos;s default date range (
                     {config.defaultDateRange.start} to {config.defaultDateRange.end}).
-                    Chart overrides:{" "}
+                    Chart series come from the Recent analytics tab. Advanced:{" "}
                     <code className="text-[11px]">walmart.timeSeries</code> (JSON tab).
-                    Daily table dates and metrics: Daily table tab.
                   </p>
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -486,27 +547,13 @@ export default function AdminPage() {
               Save KPI overrides
             </Button>
           </TabsContent>
-          {!isAmazon ? (
-            <TabsContent
-              value="table"
-              className="space-y-4 rounded-lg border bg-white p-6"
-            >
-              <div>
-                <h2 className="text-base font-semibold text-[#111111]">
-                  Walmart — Account sales table
-                </h2>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Matches the daily table on Account Sales Report. Edit dates with the
-                  calendar control; GMV % change and commission columns recalculate on
-                  save.
-                </p>
-              </div>
-              <WalmartTableRowsEditor rows={tableRows} onChange={setTableRows} />
-              <Button onClick={handleSaveTableRows}>Save table overrides</Button>
-            </TabsContent>
-          ) : null}
           <TabsContent value="json" className="space-y-4 rounded-lg border bg-white p-6">
             <Label>Full overrides JSON</Label>
+            <p className="text-xs text-muted-foreground">
+              Includes <code className="text-[11px]">recentAnalytics</code> and platform
+              slices. Full <code className="text-[11px]">amazon.timeSeries</code>{" "}
+              replacement is advanced; prefer Recent analytics for the last five months.
+            </p>
             <textarea
               className="min-h-[320px] w-full rounded-md border border-input bg-transparent p-3 font-mono text-xs"
               value={overridesJson}

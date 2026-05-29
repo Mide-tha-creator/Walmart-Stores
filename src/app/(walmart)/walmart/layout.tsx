@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import {
-  FAVICON,
+  getStoreIconsMetadata,
   WALMART_DESCRIPTION,
   WALMART_TAB_TITLE,
 } from "@/lib/metadata/site-metadata";
@@ -8,10 +8,7 @@ import {
 export const metadata: Metadata = {
   title: WALMART_TAB_TITLE,
   description: WALMART_DESCRIPTION,
-  icons: {
-    icon: [{ url: FAVICON.walmart, type: "image/svg+xml" }],
-    shortcut: FAVICON.walmart,
-  },
+  icons: getStoreIconsMetadata("walmart"),
 };
 
 export default function WalmartLayout({

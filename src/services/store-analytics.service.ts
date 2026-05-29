@@ -2,6 +2,11 @@ import { MOCK_API_DELAY_MS } from "@/lib/constants";
 import { getStoreConfig, isValidStoreId } from "@/config/stores/registry";
 import type { StoreId } from "@/config/stores/types";
 import {
+  applyIncrementToAmazonAggregate,
+  applyIncrementToWalmartSummary,
+  computeRecentAnalyticsKpiIncrement,
+} from "@/lib/store/recent-analytics-kpi-increment";
+import {
   getResolvedAmazonBundle,
   getResolvedWalmartBundle,
   loadStoreOverrides,
@@ -142,7 +147,8 @@ export async function getAmazonDashboard(
   if (!isValidStoreId(storeId)) throw new Error(`Unknown store: ${storeId}`);
 
   const bundle = getResolvedAmazonBundle(storeId as StoreId);
-  const overrides = loadStoreOverrides(storeId)?.amazon;
+  const allOverrides = loadStoreOverrides(storeId);
+  const overrides = allOverrides?.amazon;
 
   let fullSeries = bundle.fullTimeSeries;
   fullSeries = applyFulfillmentToSeries(fullSeries, filters.fulfillment);
@@ -155,9 +161,22 @@ export async function getAmazonDashboard(
     fulfillmentMultipliers[filters.fulfillment] *
     salesBreakdownMultipliers[filters.salesBreakdown];
 
-  const baseAggregate = defaultAggregate
+  let baseAggregate = defaultAggregate
     ? scaleAggregate(defaultAggregate, filterScale)
     : computedAggregate;
+
+  const kpiIncrement = computeRecentAnalyticsKpiIncrement(
+    storeId as StoreId,
+    allOverrides,
+    filters.range
+  );
+  if (
+    kpiIncrement.totalSales !== 0 ||
+    kpiIncrement.unitsSold !== 0 ||
+    kpiIncrement.orders !== 0
+  ) {
+    baseAggregate = applyIncrementToAmazonAggregate(baseAggregate, kpiIncrement);
+  }
 
   const aggregate = overrides?.aggregate
     ? { ...baseAggregate, ...overrides.aggregate }
@@ -209,11 +228,26 @@ export async function getWalmartInsights(
     filters.range.start === storeConfig.defaultDateRange.start &&
     filters.range.end === storeConfig.defaultDateRange.end;
 
-  const overrides = loadStoreOverrides(storeId)?.walmart;
+  const allOverrides = loadStoreOverrides(storeId);
+  const overrides = allOverrides?.walmart;
   let summary =
     isDefaultRange && bundle.config.defaultSummary
       ? bundle.config.defaultSummary
       : computedSummary;
+
+  const kpiIncrement = computeRecentAnalyticsKpiIncrement(
+    storeId as StoreId,
+    allOverrides,
+    filters.range
+  );
+  if (
+    kpiIncrement.totalSales !== 0 ||
+    kpiIncrement.unitsSold !== 0 ||
+    kpiIncrement.orders !== 0
+  ) {
+    summary = applyIncrementToWalmartSummary(summary, kpiIncrement);
+  }
+
   if (overrides?.summary) {
     summary = { ...summary, ...overrides.summary };
   }

@@ -18,7 +18,7 @@ const EnterpriseTimeSeriesChart = dynamic(
     import("@/components/charts/enterprise-time-series-chart").then(
       (m) => m.EnterpriseTimeSeriesChart
     ),
-  { ssr: false, loading: () => <Skeleton className="h-[320px] w-full" /> }
+  { ssr: false, loading: () => <Skeleton className="h-[380px] w-full" /> }
 );
 
 interface WalmartSalesChartProps {
@@ -110,7 +110,7 @@ export function WalmartSalesChart({
         data={data}
         variant="walmart-area"
         seriesName={seriesName}
-        height={320}
+        height={380}
         yAxisFormat={yAxisFormat}
         yDomain={yDomain}
         showSlider={false}

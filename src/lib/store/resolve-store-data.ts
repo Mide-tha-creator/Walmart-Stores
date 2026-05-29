@@ -1,6 +1,15 @@
 import { getAmazonBundle, getWalmartBundle } from "@/data/stores/registry";
 import { isValidStoreId } from "@/config/stores/registry";
 import { deepMerge } from "@/lib/store/merge-overrides";
+import {
+  mergeRecentAnalyticsIntoAmazonBundle,
+  mergeRecentAnalyticsIntoWalmartBundle,
+} from "@/lib/store/recent-analytics-merge";
+import {
+  getRecentAnalyticsWindow,
+  getStoreAnalyticsAnchorEnd,
+  isDateInRecentWindow,
+} from "@/lib/store/recent-analytics-window";
 import { getStoreOverridesKey } from "@/lib/store/storage-keys";
 import type { StoreId } from "@/config/stores/types";
 import type { AmazonStoreDataBundle, StoreOverrides, WalmartStoreDataBundle } from "@/types/store-data";
@@ -31,8 +40,34 @@ export function clearStoreOverrides(storeId: string): void {
 
 export function getResolvedAmazonBundle(storeId: StoreId): AmazonStoreDataBundle {
   const base = getAmazonBundle(storeId);
-  const overrides = loadStoreOverrides(storeId)?.amazon;
-  if (!overrides) return base;
+  const allOverrides = loadStoreOverrides(storeId);
+  const overrides = allOverrides?.amazon;
+  if (!allOverrides && !overrides) return base;
+
+  let fullTimeSeries = base.fullTimeSeries;
+
+  const hasRecent = Boolean(allOverrides?.recentAnalytics?.records?.length);
+  if (overrides?.timeSeries && !hasRecent) {
+    fullTimeSeries = overrides.timeSeries;
+  } else {
+    fullTimeSeries = mergeRecentAnalyticsIntoAmazonBundle(base, allOverrides);
+    if (overrides?.timeSeries && hasRecent) {
+      const anchorEnd = getStoreAnalyticsAnchorEnd("amazon", base.config);
+      const window = getRecentAnalyticsWindow(anchorEnd);
+      const legacyMap = new Map(overrides.timeSeries.map((p) => [p.date, p]));
+      fullTimeSeries = fullTimeSeries.map((p) => {
+        if (isDateInRecentWindow(p.date, window)) return p;
+        return legacyMap.get(p.date) ?? p;
+      });
+    }
+  }
+
+  if (!overrides) {
+    return {
+      ...base,
+      fullTimeSeries,
+    };
+  }
 
   return {
     config: deepMerge(base.config, {
@@ -43,14 +78,24 @@ export function getResolvedAmazonBundle(storeId: StoreId): AmazonStoreDataBundle
         ? deepMerge(base.config.conversion, overrides.conversion)
         : undefined,
     }),
-    fullTimeSeries: overrides.timeSeries ?? base.fullTimeSeries,
+    fullTimeSeries,
   };
 }
 
 export function getResolvedWalmartBundle(storeId: StoreId): WalmartStoreDataBundle {
   const base = getWalmartBundle(storeId);
-  const overrides = loadStoreOverrides(storeId)?.walmart;
-  if (!overrides) return base;
+  const allOverrides = loadStoreOverrides(storeId);
+  const overrides = allOverrides?.walmart;
+  if (!allOverrides && !overrides) return base;
+
+  const tableRows = mergeRecentAnalyticsIntoWalmartBundle(base, allOverrides);
+
+  if (!overrides) {
+    return {
+      ...base,
+      tableRows,
+    };
+  }
 
   return {
     config: base.config,
@@ -60,7 +105,7 @@ export function getResolvedWalmartBundle(storeId: StoreId): WalmartStoreDataBund
     timeSeries: overrides.timeSeries
       ? deepMerge(base.timeSeries, overrides.timeSeries)
       : base.timeSeries,
-    tableRows: overrides.tableRows ?? base.tableRows,
+    tableRows,
   };
 }
 

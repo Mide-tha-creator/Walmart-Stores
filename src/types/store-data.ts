@@ -10,6 +10,7 @@ import type {
   DailySalesRow,
   WalmartMetricKey,
 } from "@/types/walmart";
+import type { RecentAnalyticsOverrides } from "@/types/recent-analytics";
 
 export interface AmazonAdsMetrics {
   spend: number;
@@ -83,6 +84,7 @@ export interface CompareSalesAggregateDefaults {
 }
 
 export interface StoreOverrides {
+  recentAnalytics?: RecentAnalyticsOverrides;
   meta?: {
     displayName?: string;
   };
