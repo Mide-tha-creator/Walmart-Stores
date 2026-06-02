@@ -23,29 +23,25 @@ export const FAVICON = {
   walmart: `/favicons/walmart-seller-center.png?v=${FAVICON_CACHE_VERSION}`,
 } as const;
 
-const FAVICON_MIME = {
-  default: "image/svg+xml",
-  amazon: "image/png",
-  walmart: "image/png",
-} as const;
-
-export function getStoreFaviconLinks(marketplace: StoreConfig["marketplace"]) {
-  const href = marketplace === "amazon" ? FAVICON.amazon : FAVICON.walmart;
-  const type = marketplace === "amazon" ? FAVICON_MIME.amazon : FAVICON_MIME.walmart;
-  return { href, type, shortcut: href, apple: href };
+export function getPlatformIconsMetadata(): NonNullable<Metadata["icons"]> {
+  return {
+    icon: [{ url: FAVICON.default, type: "image/svg+xml" }],
+    shortcut: FAVICON.default,
+  };
 }
 
 export function getStoreIconsMetadata(
   marketplace: StoreConfig["marketplace"]
 ): NonNullable<Metadata["icons"]> {
-  const { href, type, shortcut, apple } = getStoreFaviconLinks(marketplace);
+  const href = marketplace === "amazon" ? FAVICON.amazon : FAVICON.walmart;
+  const type = marketplace === "amazon" ? "image/png" : "image/png";
   return {
     icon: [
       { url: href, type, sizes: "32x32" },
       { url: href, type, sizes: "192x192" },
     ],
-    shortcut,
-    apple,
+    shortcut: href,
+    apple: href,
   };
 }
 
@@ -65,7 +61,6 @@ export function getStorePageMetadata(config: StoreConfig): Metadata {
   return {
     title: getMarketplaceTabTitle(config.marketplace),
     description: getMarketplaceDescription(config.marketplace),
-    icons: getStoreIconsMetadata(config.marketplace),
     openGraph: {
       title: getMarketplaceTabTitle(config.marketplace),
       description: getMarketplaceDescription(config.marketplace),
@@ -84,10 +79,6 @@ export const rootPlatformMetadata: Metadata = {
   },
   description: PLATFORM_DESCRIPTION,
   applicationName: "Seller Analytics Platform",
-  icons: {
-    icon: [{ url: FAVICON.default, type: "image/svg+xml" }],
-    shortcut: FAVICON.default,
-  },
   openGraph: {
     title: PLATFORM_TITLE,
     description: PLATFORM_DESCRIPTION,
