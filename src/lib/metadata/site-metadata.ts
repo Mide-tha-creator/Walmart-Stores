@@ -14,12 +14,19 @@ export const AMAZON_DESCRIPTION =
 export const WALMART_DESCRIPTION =
   "Account sales insights, GMV trends, and performance reporting for Walmart Seller Center.";
 
-export const PLATFORM_FAVICON = "/favicons/seller-platform.svg";
+export const STORE_FAVICON = {
+  amazon: "/favicons/amazon.png",
+  walmart: "/favicons/walmart-seller-center.png",
+} as const;
 
-export function getPlatformIconsMetadata(): NonNullable<Metadata["icons"]> {
+export function getStoreIconsMetadata(
+  marketplace: StoreConfig["marketplace"]
+): NonNullable<Metadata["icons"]> {
+  const href =
+    marketplace === "amazon" ? STORE_FAVICON.amazon : STORE_FAVICON.walmart;
   return {
-    icon: [{ url: PLATFORM_FAVICON, type: "image/svg+xml" }],
-    shortcut: PLATFORM_FAVICON,
+    icon: [{ url: href, type: "image/png", sizes: "32x32" }],
+    shortcut: href,
   };
 }
 
@@ -39,6 +46,7 @@ export function getStorePageMetadata(config: StoreConfig): Metadata {
   return {
     title: getMarketplaceTabTitle(config.marketplace),
     description: getMarketplaceDescription(config.marketplace),
+    icons: getStoreIconsMetadata(config.marketplace),
     openGraph: {
       title: getMarketplaceTabTitle(config.marketplace),
       description: getMarketplaceDescription(config.marketplace),

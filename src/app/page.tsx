@@ -3,17 +3,12 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { ALL_STORES } from "@/config/stores/registry";
-import {
-  getPlatformIconsMetadata,
-  PLATFORM_DESCRIPTION,
-  PLATFORM_TITLE,
-} from "@/lib/metadata/site-metadata";
+import { PLATFORM_DESCRIPTION, PLATFORM_TITLE } from "@/lib/metadata/site-metadata";
 import { cn } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: PLATFORM_TITLE,
   description: PLATFORM_DESCRIPTION,
-  icons: getPlatformIconsMetadata(),
 };
 
 export default function HomePage() {

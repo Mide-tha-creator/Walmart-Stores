@@ -6,7 +6,7 @@ export const contentType = "image/png";
 
 export default async function Icon() {
   const buffer = await readFile(
-    path.join(process.cwd(), "public/brands/amazon-seller-central.png")
+    path.join(process.cwd(), "public/favicons/amazon.png")
   );
   return new Response(buffer, {
     headers: { "Content-Type": "image/png" },
