@@ -11,7 +11,6 @@ import {
   buildSeriesConfig,
   type ChartVariant,
   WALMART_PURPLE,
-  AMAZON_CYAN,
 } from "@/lib/charts/chart-themes";
 import {
   formatAxisTick,
@@ -120,7 +119,7 @@ export function EnterpriseTimeSeriesChart({
   }, [fullMin, fullMax, onVisibleRangeChange, updateAxisGranularity]);
 
   const buildOption = useCallback((): EChartsOption => {
-    const accent = variant === "walmart-area" ? WALMART_PURPLE : AMAZON_CYAN;
+    const accent = WALMART_PURPLE;
     const yAxis =
       yDomain !== "auto"
         ? {
@@ -162,8 +161,6 @@ export function EnterpriseTimeSeriesChart({
       });
     }
 
-    const isWalmart = variant === "walmart-area";
-
     const option: EChartsOption = {
       ...baseGridOption({ compactBottom: !showSlider }),
       animation: false,
@@ -181,18 +178,6 @@ export function EnterpriseTimeSeriesChart({
             iconStyle: { borderColor: "#6b7280" },
           }
         : undefined,
-      brush:
-        !isWalmart && showToolbox
-          ? {
-              toolbox: ["lineX"],
-              xAxisIndex: 0,
-              brushStyle: {
-                borderWidth: 1,
-                color: "rgba(0, 113, 206, 0.08)",
-                borderColor: "rgba(0, 113, 206, 0.45)",
-              },
-            }
-          : undefined,
       dataZoom: dataZoomComponents,
       xAxis: {
         type: "time",
@@ -283,22 +268,6 @@ export function EnterpriseTimeSeriesChart({
     onChartReady?.(chart);
 
     chart.on("dataZoom", handleDataZoom);
-    if (variant !== "walmart-area" && showToolbox) {
-      chart.on("brushEnd", (params) => {
-        const brushParams = params as {
-          areas?: Array<{ coordRange?: [number, number] }>;
-        };
-        const range = brushParams.areas?.[0]?.coordRange;
-        if (range && range[0] != null && range[1] != null) {
-          chart.dispatchAction({
-            type: "dataZoom",
-            startValue: range[0],
-            endValue: range[1],
-          });
-          chart.dispatchAction({ type: "brush", areas: [] });
-        }
-      });
-    }
 
     const resizeObserver = new ResizeObserver(() => chart.resize());
     resizeObserver.observe(el);

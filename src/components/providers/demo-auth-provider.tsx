@@ -12,12 +12,11 @@ import {
 export interface DemoUser {
   email: string;
   name: string;
-  marketplace?: "amazon" | "walmart";
 }
 
 interface DemoAuthContextValue {
   user: DemoUser | null;
-  login: (email: string, marketplace?: DemoUser["marketplace"]) => void;
+  login: (email: string) => void;
   logout: () => void;
   isAuthenticated: boolean;
 }
@@ -38,18 +37,14 @@ export function DemoAuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const login = useCallback(
-    (email: string, marketplace: DemoUser["marketplace"] = "amazon") => {
-      const next: DemoUser = {
-        email,
-        name: "Chokebody Enterprise",
-        marketplace,
-      };
-      setUser(next);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-    },
-    []
-  );
+  const login = useCallback((email: string) => {
+    const next: DemoUser = {
+      email,
+      name: "Walmart Seller Center",
+    };
+    setUser(next);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  }, []);
 
   const logout = useCallback(() => {
     setUser(null);

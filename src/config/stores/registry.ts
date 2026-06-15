@@ -1,6 +1,3 @@
-import { amazonApexConfig } from "@/config/stores/amazon-apex";
-import { amazonChokebodyConfig } from "@/config/stores/amazon-chokebody";
-import { amazonNovaConfig } from "@/config/stores/amazon-nova";
 import { walmartMainConfig } from "@/config/stores/walmart-main";
 import { walmartSecondConfig } from "@/config/stores/walmart-second";
 import { getFullHistoryDashboardDateRange } from "@/lib/store/rolling-dashboard-range";
@@ -10,9 +7,6 @@ import type { StoreConfig, StoreId } from "@/config/stores/types";
 export { getStorePath } from "@/lib/navigation/routes";
 
 const STORE_MAP: Record<StoreId, StoreConfig> = {
-  "amazon-chokebody": amazonChokebodyConfig,
-  "amazon-apex": amazonApexConfig,
-  "amazon-nova": amazonNovaConfig,
   "walmart-main": walmartMainConfig,
   "walmart-second": walmartSecondConfig,
 };

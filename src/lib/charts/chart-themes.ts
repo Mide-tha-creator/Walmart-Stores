@@ -2,54 +2,23 @@ import type { EChartsOption, LineSeriesOption } from "echarts";
 
 export const WALMART_PURPLE = "#a78bc5";
 export const WALMART_PURPLE_LEGACY = "#7659b6";
-export const AMAZON_CYAN = "#007185";
-export const AMAZON_CHART_FILL = "rgba(0, 113, 133, 0.12)";
 export const WALMART_CHART_FILL = "rgba(167, 139, 197, 0.18)";
 const GRID_COLOR = "#e5e7eb";
 const MUTED = "#6b7280";
 
-export type ChartVariant = "walmart-area" | "amazon-line";
+export type ChartVariant = "walmart-area";
 
 export function buildSeriesConfig(
-  variant: ChartVariant,
+  _variant: ChartVariant,
   name: string
 ): LineSeriesOption[] {
-  if (variant === "walmart-area") {
-    return [
-      {
-        name,
-        type: "line",
-        smooth: 0.45,
-        symbol: "none",
-        lineStyle: { width: 1.5, color: WALMART_PURPLE },
-        areaStyle: {
-          color: {
-            type: "linear",
-            x: 0,
-            y: 0,
-            x2: 0,
-            y2: 1,
-            colorStops: [
-              { offset: 0, color: WALMART_CHART_FILL },
-              { offset: 1, color: "rgba(167, 139, 197, 0.02)" },
-            ],
-          },
-        },
-        emphasis: {
-          focus: "series",
-          lineStyle: { width: 2.5 },
-        },
-      },
-    ];
-  }
-
   return [
     {
       name,
       type: "line",
-      smooth: 0.35,
+      smooth: 0.45,
       symbol: "none",
-      lineStyle: { width: 1.5, color: AMAZON_CYAN },
+      lineStyle: { width: 1.5, color: WALMART_PURPLE },
       areaStyle: {
         color: {
           type: "linear",
@@ -57,15 +26,15 @@ export function buildSeriesConfig(
           y: 0,
           x2: 0,
           y2: 1,
-            colorStops: [
-              { offset: 0, color: AMAZON_CHART_FILL },
-              { offset: 1, color: "rgba(0, 113, 133, 0)" },
-            ],
+          colorStops: [
+            { offset: 0, color: WALMART_CHART_FILL },
+            { offset: 1, color: "rgba(167, 139, 197, 0.02)" },
+          ],
         },
       },
       emphasis: {
         focus: "series",
-        lineStyle: { width: 2 },
+        lineStyle: { width: 2.5 },
       },
     },
   ];
@@ -104,7 +73,7 @@ export function baseGridOption(options?: {
         color: MUTED,
         fontSize: 10,
       },
-        splitLine: {
+      splitLine: {
         lineStyle: { color: GRID_COLOR, type: "dashed", opacity: 0.35 },
       },
     },

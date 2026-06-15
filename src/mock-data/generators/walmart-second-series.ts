@@ -1,4 +1,4 @@
-import { mulberry32 } from "@/mock-data/generators/amazon-behavioral-series";
+import { mulberry32 } from "@/mock-data/generators/random";
 import type { DailyMetricPoint } from "@/mock-data/generators/time-series";
 
 function toIsoDate(d: Date): string {

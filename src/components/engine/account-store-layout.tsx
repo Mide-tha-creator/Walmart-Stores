@@ -24,24 +24,17 @@ export function generateAccountMetadata(account: string): Metadata {
 interface AccountStoreLayoutProps {
   account: string;
   children: React.ReactNode;
-  expectedMarketplace?: "amazon" | "walmart";
 }
 
 export function AccountStoreLayout({
   account,
   children,
-  expectedMarketplace,
 }: AccountStoreLayoutProps) {
   if (!isValidAccountSlug(account)) {
     notFound();
   }
 
   const storeId = resolveAccountToStoreId(account)!;
-  const config = getStoreConfig(storeId);
-
-  if (expectedMarketplace && config.marketplace !== expectedMarketplace) {
-    notFound();
-  }
 
   return (
     <StoreProvider storeId={storeId as StoreId}>

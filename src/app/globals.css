@@ -42,36 +42,23 @@
   --card-foreground: #0f1111;
   --popover: #ffffff;
   --popover-foreground: #0f1111;
-  --primary: #007185;
+  --primary: #0071ce;
   --primary-foreground: #ffffff;
   --secondary: #f3f3f3;
   --secondary-foreground: #0f1111;
   --muted: #f3f3f3;
   --muted-foreground: #565959;
-  --accent: #e7f4f5;
-  --accent-foreground: #007185;
+  --accent: #e8f1fb;
+  --accent-foreground: #0071ce;
   --destructive: #b12704;
-  --border: #dddddd;
-  --input: #dddddd;
-  --ring: #007185;
-  --topnav-bg: #002f36;
-  --page-bg: #f3f3f3;
-  --sidebar-bg: #f7f8f8;
-  --row-active: #e7f4f5;
-  --chart-accent: #007185;
-}
-
-[data-marketplace="amazon"] {
-  --primary: #008296;
-  --primary-foreground: #ffffff;
-  --accent: #e7f4f5;
-  --accent-foreground: #007185;
-  --ring: #008296;
-  --topnav-bg: #002f36;
-  --page-bg: #f0f8f9;
-  --sidebar-bg: #f0f2f2;
-  --chart-accent: #008296;
-  --border: #d5d9d9;
+  --border: #e5e7eb;
+  --input: #e5e7eb;
+  --ring: #0071ce;
+  --topnav-bg: #ffffff;
+  --page-bg: #f4f7f9;
+  --sidebar-bg: #ffffff;
+  --row-active: #e8f1fb;
+  --chart-accent: #7d5ab5;
 }
 
 [data-marketplace="walmart"] {
@@ -87,8 +74,6 @@
   --border: #e5e7eb;
 }
 
-@import "../styles/amazon-seller-central.css";
-@import "../styles/amazon-calendar.css";
 @import "../styles/walmart-seller-center.css";
 
 @layer base {
@@ -98,9 +83,6 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: var(--font-inter), system-ui, -apple-system, sans-serif;
-  }
-  [data-marketplace="amazon"] {
-    font-family: "Amazon Ember", Arial, Helvetica, sans-serif;
   }
 }
 

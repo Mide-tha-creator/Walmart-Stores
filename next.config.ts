@@ -10,33 +10,12 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "m.media-amazon.com",
-      },
-      {
-        protocol: "https",
         hostname: "picsum.photos",
       },
     ],
   },
   async redirects() {
     return [
-      // Legacy marketplace entry points → enterprise URLs
-      {
-        source: "/amazon",
-        destination: "/business-reports/sales-dashboard",
-        permanent: false,
-      },
-      {
-        source: "/amazon/dashboard/sales",
-        destination: "/business-reports/sales-dashboard",
-        permanent: false,
-      },
-      {
-        source: "/amazon/reports/:slug",
-        destination:
-          "/business-reports/accounts/chokebody/reports/:slug",
-        permanent: false,
-      },
       {
         source: "/walmart",
         destination: "/analytics/sales-insights/account-sales",
@@ -60,37 +39,6 @@ const nextConfig: NextConfig = {
       {
         source: "/walmart/analytics/sales-insights/:path*",
         destination: "/analytics/sales-insights/account-sales",
-        permanent: false,
-      },
-      // Legacy multi-store paths → enterprise account paths
-      {
-        source: "/store/amazon-chokebody/dashboard/sales",
-        destination: "/business-reports/accounts/chokebody/sales-dashboard",
-        permanent: false,
-      },
-      {
-        source: "/store/amazon-apex/dashboard/sales",
-        destination: "/business-reports/accounts/sanabul/sales-dashboard",
-        permanent: false,
-      },
-      {
-        source: "/store/amazon-nova/dashboard/sales",
-        destination: "/business-reports/accounts/kursat/sales-dashboard",
-        permanent: false,
-      },
-      {
-        source: "/store/amazon-chokebody/reports/:slug",
-        destination: "/business-reports/accounts/chokebody/reports/:slug",
-        permanent: false,
-      },
-      {
-        source: "/store/amazon-apex/reports/:slug",
-        destination: "/business-reports/accounts/sanabul/reports/:slug",
-        permanent: false,
-      },
-      {
-        source: "/store/amazon-nova/reports/:slug",
-        destination: "/business-reports/accounts/kursat/reports/:slug",
         permanent: false,
       },
       {

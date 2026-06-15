@@ -49,8 +49,6 @@ export function WalmartAccountSalesReport({
         const filters: ReportFilters = {
           preset: "custom",
           range,
-          fulfillment: "both",
-          salesBreakdown: "marketplace_total",
         };
         const result = await getWalmartInsights(storeId, filters);
         setData(result);

@@ -2,14 +2,10 @@ import type { Metadata } from "next";
 import type { StoreConfig } from "@/config/stores/types";
 
 export const PLATFORM_TITLE = "Seller Analytics Platform";
-export const AMAZON_TAB_TITLE = "Business Reports";
 export const WALMART_TAB_TITLE = "Sales Insights | Walmart seller central";
 
 export const PLATFORM_DESCRIPTION =
-  "Business reports, sales performance, and marketplace analytics for seller operations.";
-
-export const AMAZON_DESCRIPTION =
-  "Sales dashboard, business reports, and ASIN performance metrics for Amazon Seller Central.";
+  "Sales performance and analytics for Walmart seller operations.";
 
 export const WALMART_DESCRIPTION =
   "Account sales insights, GMV trends, and performance reporting for Walmart Seller Center.";
@@ -17,63 +13,37 @@ export const WALMART_DESCRIPTION =
 /** Bump when a favicon asset changes so browsers refetch instead of using a cached icon. */
 const FAVICON_VERSION = "5";
 
-export const STORE_FAVICON = {
-  amazon: `/favicons/amazon.png?v=${FAVICON_VERSION}`,
-  walmart: `/favicons/walmart-seller-center.png?v=${FAVICON_VERSION}`,
-} as const;
+export const WALMART_FAVICON = `/favicons/walmart-seller-center.png?v=${FAVICON_VERSION}`;
 
-export function getFaviconHref(
-  marketplace: StoreConfig["marketplace"]
-): string {
-  return STORE_FAVICON[marketplace];
-}
-
-export function getStoreIconsMetadata(
-  marketplace: StoreConfig["marketplace"]
-): NonNullable<Metadata["icons"]> {
-  const href =
-    marketplace === "amazon" ? STORE_FAVICON.amazon : STORE_FAVICON.walmart;
+export function getStoreIconsMetadata(): NonNullable<Metadata["icons"]> {
   return {
-    icon: [{ url: href, type: "image/png", sizes: "32x32" }],
-    shortcut: href,
+    icon: [{ url: WALMART_FAVICON, type: "image/png", sizes: "32x32" }],
+    shortcut: WALMART_FAVICON,
   };
 }
 
-export function getMarketplaceTabTitle(
-  marketplace: StoreConfig["marketplace"]
-): string {
-  return marketplace === "amazon" ? AMAZON_TAB_TITLE : WALMART_TAB_TITLE;
-}
-
-export function getMarketplaceDescription(
-  marketplace: StoreConfig["marketplace"]
-): string {
-  return marketplace === "amazon" ? AMAZON_DESCRIPTION : WALMART_DESCRIPTION;
-}
-
 export function getStorePageMetadata(config: StoreConfig): Metadata {
+  void config;
   return {
-    title: getMarketplaceTabTitle(config.marketplace),
-    description: getMarketplaceDescription(config.marketplace),
-    icons: getStoreIconsMetadata(config.marketplace),
+    title: WALMART_TAB_TITLE,
+    description: WALMART_DESCRIPTION,
+    icons: getStoreIconsMetadata(),
     openGraph: {
-      title: getMarketplaceTabTitle(config.marketplace),
-      description: getMarketplaceDescription(config.marketplace),
-      siteName:
-        config.marketplace === "amazon"
-          ? "Amazon Seller Central"
-          : "Walmart Seller Center",
+      title: WALMART_TAB_TITLE,
+      description: WALMART_DESCRIPTION,
+      siteName: "Walmart Seller Center",
     },
   };
 }
 
 export const rootPlatformMetadata: Metadata = {
   title: {
-    default: PLATFORM_TITLE,
+    default: WALMART_TAB_TITLE,
     template: "%s",
   },
   description: PLATFORM_DESCRIPTION,
   applicationName: "Seller Analytics Platform",
+  icons: getStoreIconsMetadata(),
   openGraph: {
     title: PLATFORM_TITLE,
     description: PLATFORM_DESCRIPTION,

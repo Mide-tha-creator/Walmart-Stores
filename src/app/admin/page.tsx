@@ -22,9 +22,8 @@ import {
 } from "@/lib/store/recent-analytics-window";
 import { getRollingDashboardDateRange } from "@/lib/store/rolling-dashboard-range";
 import { validateRecentAnalyticsRecords } from "@/lib/store/recent-analytics-save";
-import { DEFAULT_ASIN_COMPARISON_LABEL } from "@/lib/store/resolve-dashboard-ui";
 import { notifyStoreOverridesUpdated } from "@/lib/store/use-display-store-config";
-import { getAmazonBundle, getWalmartBundle } from "@/data/stores/registry";
+import { getWalmartBundle } from "@/data/stores/registry";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -41,51 +40,26 @@ import type { StoreOverrides } from "@/types/store-data";
 import type { RecentAnalyticsRecord } from "@/types/recent-analytics";
 
 const EMPTY_KPI_FORM = {
-  totalOrderItems: "",
-  unitsOrdered: "",
-  orderedProductSales: "",
-  avgUnitsPerOrderItem: "",
-  avgSalesPerOrderItem: "",
-  generatedAt: "",
   gmv: "",
   unitsSold: "",
   orders: "",
   aur: "",
 };
 
-function toDatetimeLocalValue(iso?: string): string {
-  if (!iso) return "";
-  const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "";
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
-function fromDatetimeLocalValue(value: string): string {
-  if (!value.trim()) return new Date().toISOString();
-  const d = new Date(value);
-  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
-}
-
 export default function AdminPage() {
-  const [storeId, setStoreId] = useState<StoreId>("amazon-chokebody");
+  const [storeId, setStoreId] = useState<StoreId>("walmart-main");
   const [overridesJson, setOverridesJson] = useState("{}");
   const [displayName, setDisplayName] = useState("");
   const [kpiForm, setKpiForm] = useState(EMPTY_KPI_FORM);
   const [recentRecords, setRecentRecords] = useState<RecentAnalyticsRecord[]>([]);
   const [savedRecordsJson, setSavedRecordsJson] = useState("[]");
-  const [asinComparisonLabel, setAsinComparisonLabel] = useState("");
 
   const config = getStoreConfig(storeId);
-  const isAmazon = config.template === "amazon-sales";
 
   const analyticsWindow = useMemo(() => {
-    const anchorEnd =
-      config.marketplace === "amazon"
-        ? getStoreAnalyticsAnchorEnd("amazon", getAmazonBundle(storeId).config)
-        : getStoreAnalyticsAnchorEnd("walmart", getWalmartBundle(storeId).config);
+    const anchorEnd = getStoreAnalyticsAnchorEnd(getWalmartBundle(storeId).config);
     return getRecentAnalyticsWindow(anchorEnd);
-  }, [storeId, config.marketplace]);
+  }, [storeId]);
 
   const recentDirty =
     JSON.stringify(recentRecords) !== savedRecordsJson;
@@ -100,60 +74,14 @@ export default function AdminPage() {
     setRecentRecords(records);
     setSavedRecordsJson(JSON.stringify(records));
 
-    if (baseConfig.template === "amazon-sales") {
-      setAsinComparisonLabel(
-        overrides.amazon?.asinComparisonLabel ??
-          baseConfig.dashboard?.asinComparisonLabel ??
-          DEFAULT_ASIN_COMPARISON_LABEL
-      );
-      const snap = overrides.amazon?.snapshot;
-      const agg = overrides.amazon?.aggregate;
-      const defaults = getAmazonBundle(id).config.defaultAggregate;
-      setKpiForm({
-        ...EMPTY_KPI_FORM,
-        totalOrderItems: String(
-          snap?.totalOrderItems ??
-            agg?.totalOrderItems ??
-            defaults?.totalOrderItems ??
-            ""
-        ),
-        unitsOrdered: String(
-          snap?.unitsOrdered ?? agg?.unitsOrdered ?? defaults?.unitsOrdered ?? ""
-        ),
-        orderedProductSales: String(
-          snap?.orderedProductSales ??
-            agg?.orderedProductSales ??
-            defaults?.orderedProductSales ??
-            ""
-        ),
-        avgUnitsPerOrderItem: String(
-          snap?.avgUnitsPerOrderItem ??
-            agg?.avgUnitsPerOrderItem ??
-            defaults?.avgUnitsPerOrderItem ??
-            ""
-        ),
-        avgSalesPerOrderItem: String(
-          snap?.avgSalesPerOrderItem ??
-            agg?.avgSalesPerOrderItem ??
-            defaults?.avgSalesPerOrderItem ??
-            ""
-        ),
-        generatedAt: toDatetimeLocalValue(
-          snap?.generatedAt ?? "2026-05-15T16:20:56-07:00"
-        ),
-      });
-    } else {
-      setAsinComparisonLabel("");
-      const bundle = getWalmartBundle(id);
-      const sum = overrides.walmart?.summary ?? bundle.summary;
-      setKpiForm({
-        ...EMPTY_KPI_FORM,
-        gmv: String(sum.gmv ?? ""),
-        unitsSold: String(sum.unitsSold ?? ""),
-        orders: String(sum.orders ?? ""),
-        aur: String(sum.aur ?? ""),
-      });
-    }
+    const bundle = getWalmartBundle(id);
+    const sum = overrides.walmart?.summary ?? bundle.summary;
+    setKpiForm({
+      gmv: String(sum.gmv ?? ""),
+      unitsSold: String(sum.unitsSold ?? ""),
+      orders: String(sum.orders ?? ""),
+      aur: String(sum.aur ?? ""),
+    });
   }, []);
 
   useEffect(() => {
@@ -161,10 +89,7 @@ export default function AdminPage() {
   }, [storeId, loadEditorState]);
 
   const handleSaveRecentAnalytics = () => {
-    const anchorEnd =
-      config.marketplace === "amazon"
-        ? getStoreAnalyticsAnchorEnd("amazon", getAmazonBundle(storeId).config)
-        : getStoreAnalyticsAnchorEnd("walmart", getWalmartBundle(storeId).config);
+    const anchorEnd = getStoreAnalyticsAnchorEnd(getWalmartBundle(storeId).config);
     const window = getRecentAnalyticsWindow(anchorEnd);
     const validated = validateRecentAnalyticsRecords(recentRecords, window);
     if (!validated.ok) {
@@ -191,10 +116,6 @@ export default function AdminPage() {
     const current = loadStoreOverrides(storeId) ?? {};
     const next: StoreOverrides = { ...current };
     delete next.recentAnalytics;
-    if (next.amazon) {
-      delete next.amazon.timeSeries;
-      if (Object.keys(next.amazon).length === 0) delete next.amazon;
-    }
     if (next.walmart) {
       delete next.walmart.tableRows;
       if (Object.keys(next.walmart).length === 0) delete next.walmart;
@@ -207,54 +128,18 @@ export default function AdminPage() {
 
   const handleSaveKpis = () => {
     const current = loadStoreOverrides(storeId) ?? {};
-    const next: StoreOverrides = { ...current };
-
-    if (isAmazon) {
-      const totalOrderItems = Number(kpiForm.totalOrderItems) || 0;
-      const unitsOrdered = Number(kpiForm.unitsOrdered) || 0;
-      const orderedProductSales = Number(kpiForm.orderedProductSales) || 0;
-      const avgUnitsPerOrderItem = Number(kpiForm.avgUnitsPerOrderItem) || 0;
-      const avgSalesPerOrderItem = Number(kpiForm.avgSalesPerOrderItem) || 0;
-      const generatedAt = fromDatetimeLocalValue(kpiForm.generatedAt);
-
-      const metrics = {
-        label: "Selected date range",
-        totalOrderItems,
-        unitsOrdered,
-        orderedProductSales,
-        avgUnitsPerOrderItem,
-        avgSalesPerOrderItem,
-      };
-
-      const comparisonLabel = asinComparisonLabel.trim();
-      next.amazon = {
-        ...next.amazon,
-        snapshot: {
-          ...metrics,
-          generatedAt,
-        },
-        aggregate: {
-          ...next.amazon?.aggregate,
-          ...metrics,
-        },
-        ...(comparisonLabel
-          ? { asinComparisonLabel: comparisonLabel }
-          : {}),
-      };
-      if (!comparisonLabel && next.amazon) {
-        delete next.amazon.asinComparisonLabel;
-      }
-    } else {
-      next.walmart = {
-        ...next.walmart,
+    const next: StoreOverrides = {
+      ...current,
+      walmart: {
+        ...current.walmart,
         summary: {
           gmv: Number(kpiForm.gmv) || 0,
           unitsSold: Number(kpiForm.unitsSold) || 0,
           orders: Number(kpiForm.orders) || 0,
           aur: Number(kpiForm.aur) || 0,
         },
-      };
-    }
+      },
+    };
 
     saveStoreOverrides(storeId, next);
     setOverridesJson(JSON.stringify(next, null, 2));
@@ -370,47 +255,6 @@ export default function AdminPage() {
             value="analytics"
             className="rounded-lg border bg-white p-6"
           >
-            {isAmazon ? (
-              <div className="mb-6 space-y-2 rounded-md border border-[#e5e7eb] bg-[#f9fafb] p-4">
-                <Label htmlFor="asin-comparison-label">
-                  Sales Dashboard — comparison period
-                </Label>
-                <p className="text-xs text-muted-foreground">
-                  Gray subtitle under &quot;Deep dive into your sales&quot; on the Sales
-                  Dashboard (e.g. Compared to prior week (May 4 – May 10, 2024)). Saved
-                  with KPI overrides on the KPIs tab, or save below.
-                </p>
-                <Input
-                  id="asin-comparison-label"
-                  className="max-w-2xl text-[13px]"
-                  value={asinComparisonLabel}
-                  onChange={(e) => setAsinComparisonLabel(e.target.value)}
-                  placeholder={DEFAULT_ASIN_COMPARISON_LABEL}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    const current = loadStoreOverrides(storeId) ?? {};
-                    const label = asinComparisonLabel.trim();
-                    const next: StoreOverrides = { ...current };
-                    next.amazon = { ...next.amazon };
-                    if (label) {
-                      next.amazon.asinComparisonLabel = label;
-                    } else {
-                      delete next.amazon.asinComparisonLabel;
-                    }
-                    saveStoreOverrides(storeId, next);
-                    setOverridesJson(JSON.stringify(next, null, 2));
-                    notifyStoreOverridesUpdated();
-                    toast.success("Comparison period label saved");
-                  }}
-                >
-                  Save comparison label
-                </Button>
-              </div>
-            ) : null}
             <AnalyticsRecordsEditor
               records={recentRecords}
               analyticsWindow={analyticsWindow}
@@ -427,9 +271,7 @@ export default function AdminPage() {
               <div className="space-y-2 sm:col-span-2">
                 <Label>Store display name</Label>
                 <p className="text-xs text-muted-foreground">
-                  Shown in Amazon top navigation and marketplace selector. Walmart
-                  uses Seller Center branding; name is stored for consistency across
-                  admin and future headers.
+                  Stored for consistency across admin and future headers.
                 </p>
                 <div className="flex flex-wrap gap-2">
                   <Input
@@ -445,164 +287,63 @@ export default function AdminPage() {
               </div>
             </div>
 
-            {isAmazon ? (
-              <>
-                <div>
-                  <h2 className="text-base font-semibold text-[#111111]">
-                    Amazon — Sales Snapshot KPIs
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Matches the five metrics on the Sales Snapshot section. Saving also
-                    updates <code className="text-[11px]">amazon.aggregate</code> so
-                    Compare Sales stays in sync. Comparison period text is edited on the
-                    Recent analytics tab. Advanced overrides:{" "}
-                    <code className="text-[11px]">amazon.timeSeries</code>,{" "}
-                    <code className="text-[11px]">amazon.asinAlerts</code> (JSON tab).
-                  </p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  <div className="space-y-2">
-                    <Label>Total order items</Label>
-                    <Input
-                      type="number"
-                      value={kpiForm.totalOrderItems}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({
-                          ...f,
-                          totalOrderItems: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Units ordered</Label>
-                    <Input
-                      type="number"
-                      value={kpiForm.unitsOrdered}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, unitsOrdered: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Ordered product sales ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={kpiForm.orderedProductSales}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({
-                          ...f,
-                          orderedProductSales: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Avg. units/order item</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={kpiForm.avgUnitsPerOrderItem}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({
-                          ...f,
-                          avgUnitsPerOrderItem: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Avg. sales/order item ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={kpiForm.avgSalesPerOrderItem}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({
-                          ...f,
-                          avgSalesPerOrderItem: e.target.value,
-                        }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2 sm:col-span-2 lg:col-span-1">
-                    <Label>Snapshot timestamp</Label>
-                    <Input
-                      type="datetime-local"
-                      value={kpiForm.generatedAt}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, generatedAt: e.target.value }))
-                      }
-                    />
-                    <p className="text-[11px] text-muted-foreground">
-                      Sales Snapshot shows the current local time automatically on
-                      Apply and Refresh; this field is not used on the dashboard.
-                    </p>
-                  </div>
-                </div>
-              </>
-            ) : (
-              <>
-                <div>
-                  <h2 className="text-base font-semibold text-[#111111]">
-                    Walmart — Account sales summary KPIs
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Matches the four KPI cards on Account Sales Report. Values apply
-                    when the dashboard uses the rolling last-30-days window (
-                    {getRollingDashboardDateRange().start} to{" "}
-                    {getRollingDashboardDateRange().end}). Chart and table data come
-                    from the Recent analytics tab. Advanced:{" "}
-                    <code className="text-[11px]">walmart.timeSeries</code> (JSON tab).
-                  </p>
-                </div>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-                  <div className="space-y-2">
-                    <Label>GMV ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={kpiForm.gmv}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, gmv: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Units sold</Label>
-                    <Input
-                      type="number"
-                      value={kpiForm.unitsSold}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, unitsSold: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Orders</Label>
-                    <Input
-                      type="number"
-                      value={kpiForm.orders}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, orders: e.target.value }))
-                      }
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>AUR ($)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={kpiForm.aur}
-                      onChange={(e) =>
-                        setKpiForm((f) => ({ ...f, aur: e.target.value }))
-                      }
-                    />
-                  </div>
-                </div>
-              </>
-            )}
+            <div>
+              <h2 className="text-base font-semibold text-[#111111]">
+                Walmart — Account sales summary KPIs
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Matches the four KPI cards on Account Sales Report. Values apply
+                when the dashboard uses the rolling last-30-days window (
+                {getRollingDashboardDateRange().start} to{" "}
+                {getRollingDashboardDateRange().end}). Chart and table data come
+                from the Recent analytics tab. Advanced:{" "}
+                <code className="text-[11px]">walmart.timeSeries</code> (JSON tab).
+              </p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div className="space-y-2">
+                <Label>GMV ($)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={kpiForm.gmv}
+                  onChange={(e) =>
+                    setKpiForm((f) => ({ ...f, gmv: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Units sold</Label>
+                <Input
+                  type="number"
+                  value={kpiForm.unitsSold}
+                  onChange={(e) =>
+                    setKpiForm((f) => ({ ...f, unitsSold: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Orders</Label>
+                <Input
+                  type="number"
+                  value={kpiForm.orders}
+                  onChange={(e) =>
+                    setKpiForm((f) => ({ ...f, orders: e.target.value }))
+                  }
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>AUR ($)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={kpiForm.aur}
+                  onChange={(e) =>
+                    setKpiForm((f) => ({ ...f, aur: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
             <Button className="mt-6" onClick={handleSaveKpis}>
               Save KPI overrides
             </Button>
@@ -610,9 +351,8 @@ export default function AdminPage() {
           <TabsContent value="json" className="space-y-4 rounded-lg border bg-white p-6">
             <Label>Full overrides JSON</Label>
             <p className="text-xs text-muted-foreground">
-              Includes <code className="text-[11px]">recentAnalytics</code> and platform
-              slices. Full <code className="text-[11px]">amazon.timeSeries</code>{" "}
-              replacement is advanced; prefer Recent analytics for the last five months.
+              Includes <code className="text-[11px]">recentAnalytics</code> and
+              Walmart slices. Prefer Recent analytics for the last five months.
             </p>
             <textarea
               className="min-h-[320px] w-full rounded-md border border-input bg-transparent p-3 font-mono text-xs"

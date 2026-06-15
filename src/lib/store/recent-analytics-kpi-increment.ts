@@ -1,8 +1,6 @@
-import { getAmazonBundle, getWalmartBundle } from "@/data/stores/registry";
-import { getStoreConfig } from "@/config/stores/registry";
-import type { StoreId } from "@/config/stores/types";
+import { getWalmartBundle } from "@/data/stores/registry";
 import { normalizeTableRowDate } from "@/lib/store/walmart-table-rows";
-import type { CompareSalesAggregate } from "@/types/amazon";
+import type { StoreId } from "@/config/stores/types";
 import type { DateRange } from "@/types/common";
 import type { RecentAnalyticsRecord } from "@/types/recent-analytics";
 import type { StoreOverrides } from "@/types/store-data";
@@ -22,18 +20,6 @@ const EMPTY_INCREMENT: KpiIncrement = {
 
 function isInRange(date: string, range: DateRange): boolean {
   return date >= range.start && date <= range.end;
-}
-
-function getAmazonBaselineByDate(storeId: StoreId): Map<string, { sales: number; units: number }> {
-  const series = getAmazonBundle(storeId).fullTimeSeries;
-  const map = new Map<string, { sales: number; units: number }>();
-  for (const p of series) {
-    map.set(p.date, {
-      sales: p.orderedProductSales,
-      units: p.unitsOrdered,
-    });
-  }
-  return map;
 }
 
 function getWalmartBaselineByDate(
@@ -61,23 +47,13 @@ function accumulateDelta(
 }
 
 function recordsFromOverrides(
-  storeId: StoreId,
   overrides: StoreOverrides
 ): RecentAnalyticsRecord[] {
   if (overrides.recentAnalytics?.records?.length) {
     return overrides.recentAnalytics.records;
   }
 
-  const config = getStoreConfig(storeId);
-  if (config.marketplace === "amazon" && overrides.amazon?.timeSeries?.length) {
-    return overrides.amazon.timeSeries.map((p) => ({
-      date: p.date,
-      totalSales: p.orderedProductSales,
-      unitsSold: p.unitsOrdered,
-    }));
-  }
-
-  if (config.marketplace === "walmart" && overrides.walmart?.tableRows?.length) {
+  if (overrides.walmart?.tableRows?.length) {
     return overrides.walmart.tableRows.map((r) => ({
       date: normalizeTableRowDate(r.date),
       totalSales: r.gmv,
@@ -96,32 +72,12 @@ export function computeRecentAnalyticsKpiIncrement(
 ): KpiIncrement {
   if (!overrides) return { ...EMPTY_INCREMENT };
 
-  const records = recordsFromOverrides(storeId, overrides);
+  const records = recordsFromOverrides(overrides);
   if (records.length === 0) return { ...EMPTY_INCREMENT };
 
-  const config = getStoreConfig(storeId);
   const increment: KpiIncrement = { ...EMPTY_INCREMENT };
-
-  if (config.marketplace === "amazon") {
-    const baselineByDate = getAmazonBaselineByDate(storeId);
-    for (const record of records) {
-      const date = normalizeTableRowDate(record.date);
-      if (!isInRange(date, range)) continue;
-      const baseline = baselineByDate.get(date) ?? { sales: 0, units: 0, orders: 0 };
-      accumulateDelta(
-        increment,
-        record,
-        { sales: baseline.sales, units: baseline.units, orders: 0 }
-      );
-    }
-    return {
-      totalSales: Math.round(increment.totalSales * 100) / 100,
-      unitsSold: increment.unitsSold,
-      orders: increment.orders,
-    };
-  }
-
   const baselineByDate = getWalmartBaselineByDate(storeId);
+
   for (const record of records) {
     const date = normalizeTableRowDate(record.date);
     if (!isInRange(date, range)) continue;
@@ -133,34 +89,6 @@ export function computeRecentAnalyticsKpiIncrement(
     totalSales: Math.round(increment.totalSales * 100) / 100,
     unitsSold: increment.unitsSold,
     orders: increment.orders,
-  };
-}
-
-export function applyIncrementToAmazonAggregate(
-  baseline: CompareSalesAggregate,
-  increment: KpiIncrement
-): CompareSalesAggregate {
-  const unitsOrdered = baseline.unitsOrdered + increment.unitsSold;
-  const orderedProductSales =
-    Math.round((baseline.orderedProductSales + increment.totalSales) * 100) / 100;
-  const totalOrderItems =
-    baseline.totalOrderItems + Math.round(increment.unitsSold / 1.24);
-  const avgUnitsPerOrderItem =
-    totalOrderItems > 0
-      ? Math.round((unitsOrdered / totalOrderItems) * 100) / 100
-      : 0;
-  const avgSalesPerOrderItem =
-    totalOrderItems > 0
-      ? Math.round((orderedProductSales / totalOrderItems) * 100) / 100
-      : 0;
-
-  return {
-    ...baseline,
-    totalOrderItems,
-    unitsOrdered,
-    orderedProductSales,
-    avgUnitsPerOrderItem,
-    avgSalesPerOrderItem,
   };
 }
 

@@ -1,16 +1,12 @@
-import { mulberry32 } from "@/mock-data/generators/amazon-behavioral-series";
+import { mulberry32 } from "@/mock-data/generators/random";
 
 const TAIL_DAYS = 5;
 const SEED_OFFSET = 99105;
 
 /** Growth multipliers relative to baseline for each tail day (day 0 = first of last 5). */
-const GROWTH_CURVE = [1.04, 1.065, 1.2, 1.12, 1.08];
 const WALMART_GROWTH_CURVE = [1.06, 1.09, 1.22, 1.14, 1.11];
 
 export type TrailingGrowthProfile =
-  | "amazon-apex"
-  | "amazon-nova"
-  | "amazon-chokebody"
   | "walmart-main"
   | "walmart-second"
   | "default";
@@ -46,15 +42,8 @@ function resolveBaseline(
   const sevenDayAvg = avg(preTail7);
   const p25 = percentile(preTail30, 25);
 
-  const useRecoveryFloor =
-    profile === "walmart-main" || profile === "amazon-nova";
-
-  if (useRecoveryFloor) {
-    const floor =
-      profile === "walmart-main"
-        ? Math.max(p25, 120)
-        : Math.max(p25, 18);
-    return Math.max(sevenDayAvg, floor);
+  if (profile === "walmart-main") {
+    return Math.max(sevenDayAvg, Math.max(p25, 120));
   }
 
   return sevenDayAvg > 0 ? sevenDayAvg : p25;
@@ -64,8 +53,6 @@ function profileNoiseScale(profile: TrailingGrowthProfile): number {
   switch (profile) {
     case "walmart-main":
       return 0.12;
-    case "amazon-nova":
-      return 0.1;
     case "walmart-second":
       return 0.08;
     default:
@@ -82,75 +69,10 @@ function growthMultiplier(
   rand: () => number,
   profile: TrailingGrowthProfile
 ): number {
-  const curve =
-    profile === "walmart-main" || profile === "walmart-second"
-      ? WALMART_GROWTH_CURVE
-      : GROWTH_CURVE;
-  const base = curve[dayOffset] ?? curve[curve.length - 1];
+  const base = WALMART_GROWTH_CURVE[dayOffset] ?? WALMART_GROWTH_CURVE[WALMART_GROWTH_CURVE.length - 1];
   const noise = profileNoiseScale(profile);
   const spikeBoost = profile === "walmart-main" && dayOffset === 2 ? 0.05 : 0;
   return base * (1 + (rand() - 0.5) * noise + spikeBoost);
-}
-
-function medianAsp(samples: number[]): number {
-  if (samples.length === 0) return 25;
-  const sorted = [...samples].sort((a, b) => a - b);
-  const mid = Math.floor(sorted.length / 2);
-  return sorted.length % 2 === 0
-    ? (sorted[mid - 1] + sorted[mid]) / 2
-    : sorted[mid];
-}
-
-export interface AmazonTailPoint {
-  date: string;
-  unitsOrdered: number;
-  orderedProductSales: number;
-}
-
-export function applyTrailingFiveDayGrowthAmazon(
-  points: AmazonTailPoint[],
-  options: TrailingFiveDayGrowthOptions
-): AmazonTailPoint[] {
-  if (points.length < TAIL_DAYS + 1) return points;
-
-  const profile = options.profile ?? "default";
-  const rand = mulberry32(options.seed + SEED_OFFSET);
-  const result = points.map((p) => ({ ...p }));
-  const tailStart = result.length - TAIL_DAYS;
-
-  const unitValues = result.map((p) => p.unitsOrdered);
-  const baselineUnits = resolveBaseline(unitValues, tailStart, profile);
-
-  const aspSamples: number[] = [];
-  for (let i = 0; i < tailStart; i++) {
-    if (result[i].unitsOrdered > 0) {
-      aspSamples.push(result[i].orderedProductSales / result[i].unitsOrdered);
-    }
-  }
-  const asp = medianAsp(aspSamples);
-
-  const blend = profileBlend(profile);
-
-  for (let d = 0; d < TAIL_DAYS; d++) {
-    const idx = tailStart + d;
-    const mult = growthMultiplier(d, rand, profile);
-    const shapedUnits = Math.max(1, Math.round(baselineUnits * mult));
-    const existing = result[idx];
-    const newUnits = Math.round(
-      existing.unitsOrdered * (1 - blend) + shapedUnits * blend
-    );
-    const salesNoise = 0.96 + rand() * 0.08;
-    const newSales =
-      Math.round(newUnits * asp * salesNoise * 100) / 100;
-
-    result[idx] = {
-      date: existing.date,
-      unitsOrdered: Math.max(0, newUnits),
-      orderedProductSales: Math.max(0, newSales),
-    };
-  }
-
-  return result;
 }
 
 export interface WalmartTailPoint {
@@ -214,21 +136,6 @@ export function applyTrailingFiveDayGrowthWalmart(
   }
 
   return result;
-}
-
-export function amazonProfileToGrowthProfile(
-  profile?: string
-): TrailingGrowthProfile {
-  switch (profile) {
-    case "enterprise-twin-peak":
-      return "amazon-apex";
-    case "midmarket-spike-decline":
-      return "amazon-nova";
-    case "midmarket-growth":
-      return "amazon-chokebody";
-    default:
-      return "default";
-  }
 }
 
 export function walmartProfileToGrowthProfile(

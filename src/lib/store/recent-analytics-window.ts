@@ -1,6 +1,7 @@
 import { format, isValid, parseISO, startOfMonth, subMonths } from "date-fns";
 import { getTodayIso } from "@/lib/store/rolling-dashboard-range";
 import type { RecentAnalyticsRecord, RecentAnalyticsWindow } from "@/types/recent-analytics";
+import type { WalmartStoreDataConfig } from "@/types/store-data";
 
 /** Months of history editable before the data anchor. */
 export const EDITABLE_PAST_MONTHS = 5;
@@ -38,10 +39,8 @@ export function filterRecordsToWindow(
 }
 
 export function getStoreAnalyticsAnchorEnd(
-  _marketplace?: "amazon" | "walmart",
-  _config?: { seriesEnd?: string; rangeEnd?: string }
+  _config?: Pick<WalmartStoreDataConfig, "rangeEnd">
 ): string {
-  void _marketplace;
   void _config;
   return getTodayIso();
 }

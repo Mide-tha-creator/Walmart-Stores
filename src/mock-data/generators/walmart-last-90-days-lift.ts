@@ -1,4 +1,4 @@
-import { mulberry32 } from "@/mock-data/generators/amazon-behavioral-series";
+import { mulberry32 } from "@/mock-data/generators/random";
 import type { DailyMetricPoint } from "@/mock-data/generators/time-series";
 
 const LAST_90_DAYS = 90;

@@ -30,7 +30,7 @@ export default async function WalmartAccountLayout({
 }) {
   const { account } = await params;
   return (
-    <AccountStoreLayout account={account} expectedMarketplace="walmart">
+    <AccountStoreLayout account={account}>
       {children}
     </AccountStoreLayout>
   );

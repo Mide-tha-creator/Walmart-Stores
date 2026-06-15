@@ -1,15 +1,6 @@
-import type { AsinAlertCategory } from "@/types/amazon";
+export type Marketplace = "walmart";
 
-export type Marketplace = "amazon" | "walmart";
-
-export interface StoreDashboardUi {
-  asinTitle?: string;
-  asinComparisonLabel?: string;
-  defaultAsinCategory?: AsinAlertCategory;
-  asinLayout?: "carousel" | "horizontal";
-}
-
-export type DashboardTemplate = "amazon-sales" | "walmart-insights";
+export type DashboardTemplate = "walmart-insights";
 
 export interface StoreBranding {
   primary: string;
@@ -40,13 +31,7 @@ export interface StoreConfig {
   routes: {
     home: string;
   };
-  dashboard?: StoreDashboardUi;
   topNav?: StoreTopNavUi;
 }
 
-export type StoreId =
-  | "amazon-chokebody"
-  | "amazon-apex"
-  | "amazon-nova"
-  | "walmart-main"
-  | "walmart-second";
+export type StoreId = "walmart-main" | "walmart-second";

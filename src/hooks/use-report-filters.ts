@@ -2,12 +2,7 @@
 
 import { useCallback, useState } from "react";
 import { getRollingDashboardDateRange } from "@/lib/store/rolling-dashboard-range";
-import type {
-  DatePreset,
-  FulfillmentChannel,
-  ReportFilters,
-  SalesBreakdown,
-} from "@/types/common";
+import type { DatePreset, ReportFilters } from "@/types/common";
 
 function createDefaultFilters(
   initial?: Partial<ReportFilters>
@@ -16,8 +11,6 @@ function createDefaultFilters(
   return {
     preset: hasCustomRange ? "custom" : "30d",
     range: initial?.range ?? getRollingDashboardDateRange(),
-    fulfillment: "both",
-    salesBreakdown: "marketplace_total",
     ...initial,
   };
 }
@@ -42,14 +35,6 @@ export function useReportFilters(initial?: Partial<ReportFilters>) {
     setDraft((prev) => ({ ...prev, preset }));
   }, []);
 
-  const updateFulfillment = useCallback((fulfillment: FulfillmentChannel) => {
-    setDraft((prev) => ({ ...prev, fulfillment }));
-  }, []);
-
-  const updateSalesBreakdown = useCallback((salesBreakdown: SalesBreakdown) => {
-    setDraft((prev) => ({ ...prev, salesBreakdown }));
-  }, []);
-
   const applyFilters = useCallback(() => {
     setApplied({ ...draft });
     return draft;
@@ -61,8 +46,6 @@ export function useReportFilters(initial?: Partial<ReportFilters>) {
     updateDraft,
     updateRange,
     updatePreset,
-    updateFulfillment,
-    updateSalesBreakdown,
     applyFilters,
     setApplied,
   };

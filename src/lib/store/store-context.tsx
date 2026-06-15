@@ -23,17 +23,13 @@ function brandingToCssVars(
 ): CSSProperties {
   return {
     ["--primary" as string]: branding.primary,
-    ["--amazon-action" as string]: branding.primary,
     ["--primary-foreground" as string]: "#ffffff",
     ["--ring" as string]: branding.primary,
-    ["--accent" as string]:
-      branding.primary === "#0071ce" ? "#e8f1fb" : "#e7f4f5",
+    ["--accent" as string]: "#e8f1fb",
     ["--accent-foreground" as string]: branding.primary,
-    ["--topnav-bg" as string]: branding.topnavBg ?? "#002f36",
-    ["--amazon-topnav-bg" as string]: branding.topnavBg ?? "#002f36",
-    ["--amazon-topnav-sub" as string]: "#013a47",
-    ["--page-bg" as string]: branding.pageBg ?? "#f3f3f3",
-    ["--sidebar-bg" as string]: branding.sidebarBg ?? "#f7f8f8",
+    ["--topnav-bg" as string]: branding.topnavBg ?? "#ffffff",
+    ["--page-bg" as string]: branding.pageBg ?? "#f4f7f9",
+    ["--sidebar-bg" as string]: branding.sidebarBg ?? "#ffffff",
     ["--chart-accent" as string]: branding.chartAccent ?? branding.primary,
   };
 }
@@ -58,7 +54,7 @@ export function StoreProvider({
   return (
     <StoreContext.Provider value={value}>
       <div
-        data-marketplace={config.marketplace}
+        data-marketplace="walmart"
         data-store={storeId}
         style={value.brandingStyle}
         className="contents"

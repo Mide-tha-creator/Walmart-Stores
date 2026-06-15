@@ -21,7 +21,7 @@ export default function HomePage() {
           </h1>
           <Link
             href="/admin"
-            className="text-sm text-[#565959] hover:text-[#007185]"
+            className="text-sm text-[#565959] hover:text-[#0071ce]"
           >
             Data editor
           </Link>
@@ -32,11 +32,11 @@ export default function HomePage() {
           Select a store
         </p>
         <h2 className="mb-4 text-3xl font-bold tracking-tight text-[#111111] md:text-4xl">
-          Marketplace analytics
+          Walmart seller accounts
         </h2>
         <p className="mb-12 max-w-2xl text-[#565959]">
-          Choose a seller account to open business reports, sales dashboards, and
-          marketplace performance insights.
+          Choose a Walmart seller account to open Sales Insights, GMV trends, and
+          daily performance reporting.
         </p>
         <div className="grid gap-6 sm:grid-cols-2">
           {ALL_STORES.map((store) => (
@@ -44,40 +44,23 @@ export default function HomePage() {
               key={store.id}
               href={store.routes.home}
               className={cn(
-                "group flex flex-col rounded-xl border border-[#d5d9d9] bg-white p-6 text-left shadow-sm transition hover:shadow-md",
-                store.marketplace === "amazon"
-                  ? "hover:border-[#008296]"
-                  : "hover:border-[#0071ce]"
+                "group flex flex-col rounded-xl border border-[#d5d9d9] bg-white p-6 text-left shadow-sm transition hover:border-[#0071ce] hover:shadow-md"
               )}
             >
-              <div
-                className={cn(
-                  "mb-4 inline-flex w-fit",
-                  store.marketplace === "amazon" &&
-                    "rounded bg-[#002f36] px-3 py-2"
-                )}
-              >
+              <div className="mb-4 inline-flex w-fit">
                 <Image
                   src={store.logo.src}
                   alt={store.logo.alt}
-                  width={store.marketplace === "amazon" ? 430 : 160}
-                  height={store.marketplace === "amazon" ? 80 : 36}
-                  className={cn(
-                    "w-auto object-contain object-left",
-                    store.marketplace === "amazon" ? "h-7" : "h-9"
-                  )}
+                  width={160}
+                  height={36}
+                  className="h-9 w-auto object-contain object-left"
                 />
               </div>
               <h3 className="text-xl font-bold text-[#111111]">{store.name}</h3>
               <p className="mt-2 flex-1 text-sm text-[#565959]">
                 {store.description}
               </p>
-              <span
-                className={cn(
-                  "mt-4 inline-flex items-center text-sm font-medium",
-                  store.marketplace === "amazon" ? "text-[#008296]" : "text-[#0071ce]"
-                )}
-              >
+              <span className="mt-4 inline-flex items-center text-sm font-medium text-[#0071ce]">
                 Open dashboard
                 <ArrowRight className="ml-1 h-4 w-4 transition group-hover:translate-x-1" />
               </span>
