@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { format, parseISO, startOfWeek, startOfMonth, subDays } from "date-fns";
 import { Globe } from "lucide-react";
 import { DayPicker } from "react-day-picker";
@@ -17,8 +17,6 @@ import type { DateRange } from "@/types/common";
 
 import "react-day-picker/style.css";
 
-const DEMO_TODAY = parseISO("2026-05-15");
-
 interface DatePreset {
   id: string;
   label: string;
@@ -26,8 +24,7 @@ interface DatePreset {
   range: DateRange;
 }
 
-function buildPresets(): DatePreset[] {
-  const today = DEMO_TODAY;
+function buildPresets(today: Date = new Date()): DatePreset[] {
   const weekEnd = subDays(today, 1);
   const weekStart = startOfWeek(weekEnd, { weekStartsOn: 0 });
   const monthStart = startOfMonth(today);
@@ -80,12 +77,10 @@ function buildPresets(): DatePreset[] {
       id: "custom",
       label: "Custom",
       sublabel: "Select dates on calendar",
-      range: { start: "2024-01-01", end: "2026-05-14" },
+      range: { start: "2024-01-01", end: format(today, "yyyy-MM-dd") },
     },
   ];
 }
-
-const PRESETS = buildPresets();
 
 function toDisplay(iso: string): string {
   return format(parseISO(iso), "MM/dd/yyyy");
@@ -110,6 +105,7 @@ export function WalmartDateRangeModal({
   onApply,
   triggerLabel,
 }: WalmartDateRangeModalProps) {
+  const presets = useMemo(() => buildPresets(), []);
   const [compareEnabled, setCompareEnabled] = useState(false);
   const [draftRange, setDraftRange] = useState<DateRange>(appliedRange);
   const [selectedPresetId, setSelectedPresetId] = useState<string>("custom");
@@ -119,7 +115,7 @@ export function WalmartDateRangeModal({
     if (!open) return;
     setDraftRange(appliedRange);
     setMonth(parseISO(appliedRange.start));
-    const match = PRESETS.find(
+    const match = presets.find(
       (p) =>
         p.range.start === appliedRange.start && p.range.end === appliedRange.end
     );
@@ -185,7 +181,7 @@ export function WalmartDateRangeModal({
                 </div>
               </div>
               <ul className="space-y-0.5">
-                {PRESETS.map((preset) => (
+                {presets.map((preset) => (
                   <li key={preset.id}>
                     <button
                       type="button"
@@ -274,7 +270,7 @@ export function WalmartDateRangeModal({
               <div className="mt-auto flex items-center justify-between border-t border-[#e5e7eb] px-5 py-3">
                 <div className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">
                   <Globe className="h-3.5 w-3.5" />
-                  Pacific Standard Time (PST) - 05/15/2026 09:21 AM
+                  Pacific Standard Time (PST) - {format(new Date(), "MM/dd/yyyy hh:mm a")}
                 </div>
                 <div className="flex items-center gap-3">
                   <button

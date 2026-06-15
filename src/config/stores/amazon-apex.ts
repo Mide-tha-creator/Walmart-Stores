@@ -1,4 +1,5 @@
 import { getAmazonSalesDashboardPath } from "@/lib/navigation/routes";
+import { getRollingDashboardDateRange } from "@/lib/store/rolling-dashboard-range";
 import type { StoreConfig } from "@/config/stores/types";
 
 export const amazonApexConfig: StoreConfig = {
@@ -20,12 +21,12 @@ export const amazonApexConfig: StoreConfig = {
     sidebarBg: "#f0f2f2",
     chartAccent: "#008296",
   },
-  defaultDateRange: { start: "2024-05-15", end: "2026-05-14" },
+  defaultDateRange: { start: "2024-05-15", end: getRollingDashboardDateRange().end },
   regionLabel: "United States",
   routes: { home: getAmazonSalesDashboardPath("amazon-apex") },
   dashboard: {
     asinTitle: "Deep dive into your sales",
-    asinComparisonLabel: "Compared to prior week (May 4 – May 10, 2024)",
+    asinComparisonLabel: "Compared to prior week (June 2 – June 8, 2026)",
     defaultAsinCategory: "growth_opportunities",
     asinLayout: "carousel",
   },

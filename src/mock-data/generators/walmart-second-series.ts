@@ -116,9 +116,11 @@ export function generateWalmartSecondSeries(
     sepPool.sort((a, b) => scaledGmvs[b] - scaledGmvs[a]);
     const topSepDay = sepPool.slice(0, 1);
 
-    const latePool = indicesInProgressRange(dayCount, 0.8, 0.98);
+    const latePool = indicesInProgressRange(dayCount, 0.8, 0.98).filter(
+      (i) => i < dayCount - 5
+    );
     latePool.sort((a, b) => scaledGmvs[b] - scaledGmvs[a]);
-    const topLateDays = latePool.slice(0, 18);
+    const topLateDays = latePool.slice(0, 15);
 
     const flatPool = indicesInProgressRange(dayCount, 0.5, 0.64);
     const flatIndices = flatPool.filter((i) => !topEarlyDays.includes(i));
@@ -144,6 +146,9 @@ export function generateWalmartSecondSeries(
       const wobble = Math.round((rand() - 0.5) * 120);
       scaledGmvs[idx] = 520 + rand() * 420 + wobble;
     });
+
+    // Leave the final 5 days unshaped here — applyTrailingFiveDayGrowthWalmart
+    // shapes them with natural variation instead of a flat ceiling.
 
     flatIndices.forEach((idx) => {
       if (shapedIndices.has(idx)) return;
@@ -177,9 +182,13 @@ export function generateWalmartSecondSeries(
       cursor += 1;
     }
 
-    scaledGmvs = scaledGmvs.map((g) =>
-      Math.max(-180, Math.min(1520, Math.round(g * 100) / 100))
-    );
+    scaledGmvs = scaledGmvs.map((g, i) => {
+      const capped = Math.max(-180, Math.min(1520, Math.round(g * 100) / 100));
+      if (i >= dayCount - 5) {
+        return Math.round(g * 100) / 100;
+      }
+      return capped;
+    });
     const finalDrift =
       Math.round((targetGmv - scaledGmvs.reduce((s, v) => s + v, 0)) * 100) / 100;
     if (finalDrift !== 0 && bodyIndices.length > 0) {

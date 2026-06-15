@@ -32,7 +32,7 @@ function applyPreset(preset: DatePreset): { start: string; end: string } {
     case "ytd":
       return { start: format(new Date(end.getFullYear(), 0, 1), "yyyy-MM-dd"), end: endStr };
     default:
-      return { start: "2024-05-16", end: "2026-05-15" };
+      return { start: format(subDays(end, 30), "yyyy-MM-dd"), end: endStr };
   }
 }
 

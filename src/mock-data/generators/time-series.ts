@@ -3,6 +3,12 @@ import { generateAmazonApexSeries } from "@/mock-data/generators/amazon-apex-ser
 import { generateAmazonChokebodySeries } from "@/mock-data/generators/amazon-chokebody-series";
 import { generateAmazonNovaSeries } from "@/mock-data/generators/amazon-nova-series";
 import { applyAmazonLast90DaysLift } from "@/mock-data/generators/amazon-last-90-days-lift";
+import {
+  amazonProfileToGrowthProfile,
+  applyTrailingFiveDayGrowthAmazon,
+  applyTrailingFiveDayGrowthWalmart,
+  walmartProfileToGrowthProfile,
+} from "@/mock-data/generators/apply-trailing-five-day-growth";
 import { applyWalmartLast90DaysLift } from "@/mock-data/generators/walmart-last-90-days-lift";
 import { generateWalmartSecondSeries } from "@/mock-data/generators/walmart-second-series";
 import type { AmazonTimeSeriesProfile, WalmartTimeSeriesProfile } from "@/types/store-data";
@@ -22,48 +28,98 @@ export interface GenerateTimeSeriesOptions {
   walmartTimeSeriesProfile?: WalmartTimeSeriesProfile;
 }
 
+function finishAmazonSeries(
+  points: { date: string; unitsOrdered: number; orderedProductSales: number }[],
+  options: GenerateTimeSeriesOptions
+) {
+  const seed = options.seed ?? 42;
+  const lifted = applyAmazonLast90DaysLift(points, {
+    seed,
+    preserveTotals: false,
+  });
+  return applyTrailingFiveDayGrowthAmazon(lifted, {
+    seed,
+    profile: amazonProfileToGrowthProfile(options.timeSeriesProfile),
+  });
+}
+
 export function generateAmazonTimeSeries(
   options: GenerateTimeSeriesOptions
 ): { date: string; unitsOrdered: number; orderedProductSales: number }[] {
-  const liftOptions = {
-    seed: options.seed ?? 42,
-    preserveTotals: false,
-  } as const;
-
   if (options.timeSeriesProfile === "midmarket-growth") {
-    return applyAmazonLast90DaysLift(
-      generateAmazonChokebodySeries(options),
-      liftOptions
-    );
+    return finishAmazonSeries(generateAmazonChokebodySeries(options), options);
   }
   if (options.timeSeriesProfile === "enterprise-twin-peak") {
-    return applyAmazonLast90DaysLift(
-      generateAmazonApexSeries(options),
-      liftOptions
-    );
+    return finishAmazonSeries(generateAmazonApexSeries(options), options);
   }
   if (options.timeSeriesProfile === "midmarket-spike-decline") {
-    return applyAmazonLast90DaysLift(
-      generateAmazonNovaSeries(options),
-      liftOptions
-    );
+    return finishAmazonSeries(generateAmazonNovaSeries(options), options);
   }
-  return applyAmazonLast90DaysLift(
-    generateAmazonBehavioralSeries(options),
-    liftOptions
+  return finishAmazonSeries(generateAmazonBehavioralSeries(options), options);
+}
+
+function reconcileWalmartTargetGmv(
+  points: DailyMetricPoint[],
+  targetGmv: number | undefined,
+  seed: number
+): DailyMetricPoint[] {
+  if (!targetGmv || targetGmv <= 0 || points.length < 12) return points;
+
+  const result = points.map((p) => ({ ...p }));
+  const tailGuard = Math.max(0, result.length - 10);
+  const adjustIdx = Math.min(
+    Math.floor(result.length * 0.72),
+    tailGuard - 1
   );
+  if (adjustIdx < 0) return result;
+
+  const current = result.reduce((s, p) => s + p.gmv, 0);
+  const drift = Math.round((targetGmv - current) * 100) / 100;
+  if (drift === 0) return result;
+
+  const rand = mulberry32(seed + 31);
+  const adjustedGmv = Math.max(0, result[adjustIdx].gmv + drift);
+  const units = Math.max(0, Math.round(adjustedGmv / (8 + rand() * 4)));
+  const orders = Math.max(0, Math.round(units * (0.85 + rand() * 0.1)));
+  result[adjustIdx] = {
+    date: result[adjustIdx].date,
+    gmv: Math.round(adjustedGmv * 100) / 100,
+    unitsSold: units,
+    orders,
+    aur: units > 0 ? Math.round((adjustedGmv / units) * 100) / 100 : 0,
+  };
+
+  return result;
+}
+
+function finishWalmartSeries(
+  points: DailyMetricPoint[],
+  options: GenerateTimeSeriesOptions
+): DailyMetricPoint[] {
+  const seed = options.seed ?? 42;
+  const grown = applyTrailingFiveDayGrowthWalmart(points, {
+    seed,
+    profile: walmartProfileToGrowthProfile(options.walmartTimeSeriesProfile),
+  });
+  if (options.walmartTimeSeriesProfile === "volatile-bursts") {
+    return reconcileWalmartTargetGmv(grown, options.targetSales, seed);
+  }
+  return grown;
 }
 
 export function generateWalmartTimeSeries(
   options: GenerateTimeSeriesOptions
 ): DailyMetricPoint[] {
   if (options.walmartTimeSeriesProfile === "volatile-bursts") {
-    return generateWalmartSecondSeries({
-      startDate: options.startDate,
-      endDate: options.endDate,
-      seed: options.seed,
-      targetGmv: options.targetSales,
-    });
+    return finishWalmartSeries(
+      generateWalmartSecondSeries({
+        startDate: options.startDate,
+        endDate: options.endDate,
+        seed: options.seed,
+        targetGmv: options.targetSales,
+      }),
+      options
+    );
   }
 
   const rand = mulberry32((options.seed ?? 42) + 7);
@@ -143,13 +199,16 @@ export function generateWalmartTimeSeries(
   }
 
   if (options.walmartTimeSeriesProfile === "spike-collapse") {
-    return applyWalmartLast90DaysLift(points, {
-      seed: options.seed ?? 42,
-      preserveTotals: false,
-    });
+    return finishWalmartSeries(
+      applyWalmartLast90DaysLift(points, {
+        seed: options.seed ?? 42,
+        preserveTotals: false,
+      }),
+      options
+    );
   }
 
-  return points;
+  return finishWalmartSeries(points, options);
 }
 
 export interface DailyMetricPoint {

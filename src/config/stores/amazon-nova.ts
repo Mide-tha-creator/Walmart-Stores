@@ -1,4 +1,5 @@
 import { getAmazonSalesDashboardPath } from "@/lib/navigation/routes";
+import { getRollingDashboardDateRange } from "@/lib/store/rolling-dashboard-range";
 import type { StoreConfig } from "@/config/stores/types";
 
 export const amazonNovaConfig: StoreConfig = {
@@ -20,13 +21,13 @@ export const amazonNovaConfig: StoreConfig = {
     sidebarBg: "#f0f2f2",
     chartAccent: "#008296",
   },
-  defaultDateRange: { start: "2024-08-14", end: "2026-05-15" },
+  defaultDateRange: { start: "2024-08-14", end: getRollingDashboardDateRange().end },
   regionLabel: "United States",
   routes: { home: getAmazonSalesDashboardPath("amazon-nova") },
   dashboard: {
     asinTitle: "Deep dive your ASIN performance",
     asinComparisonLabel:
-      "Comparing Monday-Sunday ending May 10, 2026 to similar ASINs",
+      "Comparing Monday-Sunday ending June 8, 2026 to similar ASINs",
     defaultAsinCategory: "below_market_average",
     asinLayout: "horizontal",
   },

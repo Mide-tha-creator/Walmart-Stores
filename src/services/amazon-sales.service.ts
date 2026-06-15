@@ -1,4 +1,5 @@
 import { MOCK_API_DELAY_MS } from "@/lib/constants";
+import { getTodayIso } from "@/lib/store/rolling-dashboard-range";
 import { ASIN_ALERTS } from "@/mock-data/amazon/asin-alerts";
 import { DEFAULT_INSIGHTS } from "@/mock-data/amazon/insights-copy";
 import { generateAmazonTimeSeries } from "@/mock-data/generators/time-series";
@@ -11,7 +12,6 @@ import type {
 } from "@/types/amazon";
 
 const FULL_SERIES_START = "2023-05-16";
-const FULL_SERIES_END = "2026-05-15";
 
 const fulfillmentMultipliers: Record<ReportFilters["fulfillment"], number> = {
   both: 1,
@@ -78,7 +78,7 @@ export async function getSalesDashboard(
   const mult = fulfillmentMultipliers[filters.fulfillment];
   const fullSeries = generateAmazonTimeSeries({
     startDate: FULL_SERIES_START,
-    endDate: FULL_SERIES_END,
+    endDate: getTodayIso(),
     seed: 42,
     fulfillmentMultiplier: mult,
   });
