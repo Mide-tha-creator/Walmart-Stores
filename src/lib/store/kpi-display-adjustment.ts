@@ -1,7 +1,7 @@
 import type { AccountSalesSummary } from "@/types/walmart";
 
-/** Headline KPI uplift (~10%). Charts and table rows share the same underlying series. */
-export const STORE_KPI_DISPLAY_MULTIPLIER = 1.1;
+/** Headline KPI uplift (+1% on summary cards; charts/table use underlying targetSales). */
+export const STORE_KPI_DISPLAY_MULTIPLIER = 1.01;
 
 export function applyWalmartKpiDisplayMultiplier(
   summary: AccountSalesSummary
