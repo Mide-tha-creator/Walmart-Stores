@@ -5,7 +5,7 @@ import type { DateRange } from "@/types/common";
 export const ROLLING_DASHBOARD_DAYS = 30;
 
 /** Demo anchor date — all store history and tables extend through this day. */
-export const DEMO_AS_OF_DATE = "2026-06-25";
+export const DEMO_AS_OF_DATE = "2026-06-26";
 
 function getDemoAsOfDate(): Date {
   return parseISO(DEMO_AS_OF_DATE);
